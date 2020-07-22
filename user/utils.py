@@ -1,13 +1,9 @@
 import jwt
-import json
-import requests
 
+from django.http import JsonResponse
+from casetify_backend.settings import SECRET_KEY
 
-from django.http                        import JsonResponse
-from django.core.exceptions             import ObjectDoesNotExist
-
-from casetify_backend.settings          import SECRET_KEY 
-from .models                            import User
+from .models import User
 
 
 def login_decorator(func):
@@ -18,14 +14,13 @@ def login_decorator(func):
             user = User.objects.get(id=payload["id"])
             request.user = user
         except jwt.DecodeError:
-            return  JsonResponse({'message' : 'INVALID_TOKEN'}, status=401)
+            return JsonResponse({'message': 'INVALID_TOKEN'}, status=401)
         except User.DoesNotExist:
-            return JsonResponse({'message':'INVALID_USER'}, status = 400)
+            return JsonResponse({'message': 'INVALID_USER'}, status=400)
         except TypeError:
-            return JsonResponse({'message':'INVALID_VALUE'}, status = 400)
+            return JsonResponse({'message': 'INVALID_VALUE'}, status=400)
         except KeyError:
-            return JsonResponse({'message': 'INVALID'}, status = 400)
+            return JsonResponse({'message': 'INVALID'}, status=400)
         return func(self, request, *args, **kwargs)
 
     return wrapper
-

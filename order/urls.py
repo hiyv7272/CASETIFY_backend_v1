@@ -1,5 +1,5 @@
-from django.urls import path 
-from .views      import ShopBasketAddView, ShopBasketView, OrderView, OrderCheckoutView
+from django.urls import path
+from .views import ShopBasketAddView, ShopBasketView, OrderView, OrderCheckoutView
 
 urlpatterns = [
     path('/shopbasketadd', ShopBasketAddView.as_view()),
