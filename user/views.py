@@ -34,7 +34,7 @@ class SignUpView(View):
 
             if validation: return validation
 
-            hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
+            hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt()).decode()
             User(
                 email=data['email'],
                 password=hashed_password,
