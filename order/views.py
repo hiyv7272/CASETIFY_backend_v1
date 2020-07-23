@@ -7,16 +7,15 @@ from django.core.mail.message import EmailMessage
 from user.utils import login_decorator
 from my_settings import SMS_AUTH_ID, SMS_SERVICE_SECRET, SMS_FROM_NUMBER, SMS_URL
 
-from .models import Order, OrderStatus
+from .models import Order
 from user.models import User
-from artwork.models import CustomArtworkImage, RegularArtworkImage
 
 
-class ShopBasketAddView(View):
+class Cart(View):
     @login_decorator
     def post(self, request):
-
         data = json.loads(request.body)
+
         try:
             Order.objects.create(
                 user_id=request.user.id,
@@ -33,12 +32,9 @@ class ShopBasketAddView(View):
         except KeyError:
             return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
 
-
-class ShopBasketView(View):
     @login_decorator
     def get(self, request):
-
-        custom_orders = Order.objects.select_related(
+        custom_order = Order.objects.select_related(
             'user',
             'artwork',
             'artwork_color',
@@ -46,7 +42,7 @@ class ShopBasketView(View):
             'order_status'
         ).filter(user=request.user.id, is_customed=True, order_status=1).order_by('id')
 
-        regular_orders = Order.objects.select_related(
+        regular_order = Order.objects.select_related(
             'user',
             'artwork',
             'artwork_color',
@@ -54,43 +50,35 @@ class ShopBasketView(View):
             'order_status'
         ).filter(user=request.user.id, is_customed=False, order_status=1).order_by('id')
 
-        custom_image = CustomArtworkImage.objects
-        regular_image = RegularArtworkImage.objects
-
         try:
-            custom_orders = [
-                {
-                    'id': result.id,
-                    'user': result.user.name,
-                    'artwork': result.artwork.name,
-                    'artwork_color': result.artwork_color.name,
-                    'artwork_price': result.artwork_price.price,
-                    'is_customed': result.is_customed,
-                    'custom_info': result.custom_info,
-                    'order_status': result.order_status.name,
-                    'custom_image': custom_image.get(
-                        artwork_id=result.artwork,
-                        artwork_color_id=result.artwork_color
-                    ).image_1
-                }
-                for result in custom_orders]
+            custom_orders = list()
+            regular_orders = list()
 
-            regular_orders = [
-                {
-                    'id': result.id,
-                    'user': result.user.name,
-                    'artwork': result.artwork.name,
-                    'artwork_color': result.artwork_color.name,
-                    'artwork_price': result.artwork_price.price,
-                    'is_customed': result.is_customed,
-                    'custom_info': result.custom_info,
-                    'order_status': result.order_status.name,
-                    'regular_image': regular_image.filter(
-                        artwork_id=result.artwork,
-                        artwork_color_id=result.artwork_color
-                    )[0].image_1
-                }
-                for result in regular_orders]
+            for result in custom_order:
+                dict_data = dict()
+                dict_data['id'] = result.id
+                dict_data['user'] = result.user.name
+                dict_data['artwork'] = result.artwork.name
+                dict_data['artwork_color'] = result.artwork_color.name
+                dict_data['artwork_price'] = result.artwork_price.price
+                dict_data['is_customed'] = result.is_customed
+                dict_data['custom_info'] = result.custom_info
+                dict_data['order_status'] = result.order_status.name
+
+                custom_orders.append(dict_data)
+
+            for result in regular_order:
+                dict_data = dict()
+                dict_data['id'] = result.id
+                dict_data['user'] = result.user.name
+                dict_data['artwork'] = result.artwork.name
+                dict_data['artwork_color'] = result.artwork_color.name
+                dict_data['artwork_price'] = result.artwork_price.price
+                dict_data['is_customed'] = result.is_customed
+                dict_data['custom_info'] = result.custom_info
+                dict_data['order_status'] = result.order_status.name
+
+                regular_orders.append(dict_data)
 
             return JsonResponse({
                 "custom_orders": custom_orders,
@@ -106,19 +94,43 @@ class ShopBasketView(View):
 class OrderView(View):
     @login_decorator
     def get(self, request):
+        user = User.objects.get(id=request.user.id)
+        order = Order.objects.select_related(
+            'user',
+            'artwork',
+            'artwork_color',
+            'artwork_price',
+            'order_status'
+        ).filter(user=request.user.id, order_status=3).order_by('id')
 
         try:
-            user = User.objects.get(id=request.user.id)
-            result = {
-                "email": user.email,
-                "mobile_number": user.mobile_number,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "address": user.address,
-                "zipcode": user.zipcode
-            }
+            orders = list()
+            user_data = dict()
 
-            return JsonResponse({"user_data": result}, status=200)
+            user_data['email'] = user.email
+            user_data['mobile_number'] = user.mobile_number
+            user_data['first_name'] = user.first_name
+            user_data['last_name'] = user.last_name
+            user_data['address'] = user.address
+            user_data['zipcode'] = user.zipcode
+
+            for result in order:
+                dict_data = dict()
+                dict_data['id'] = result.id
+                dict_data['user'] = result.user.name
+                dict_data['artwork'] = result.artwork.name
+                dict_data['artwork_color'] = result.artwork_color.name
+                dict_data['artwork_price'] = result.artwork_price.price
+                dict_data['is_customed'] = result.is_customed
+                dict_data['custom_info'] = result.custom_info
+                dict_data['order_status'] = result.order_status.name
+
+                orders.append(dict_data)
+
+            return JsonResponse({
+                "user_data": user_data,
+                "orders": orders,
+            }, status=200)
 
         except KeyError:
             return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
@@ -142,7 +154,7 @@ class OrderCheckoutView(View):
                 Order.objects.filter(id=id).update(order_status_id=data['order_status_id'])
 
             self.email(data, user)
-            self.sms_service(data, user)
+            # self.sms_service(data, user)
             return HttpResponse(status=200)
 
         except Order.DoesNotExist:
@@ -167,13 +179,13 @@ class OrderCheckoutView(View):
         for id in data['id']:
             info = Order.objects.select_related('user', 'artwork').get(id=id)
         mobile_number = info.user.mobile_number
-        name = info.user.name
-        address = info.user.address
+
         headers = {
             'Content-Type': 'application/json; charset=utf-8',
             'x-ncp-auth-key': f'{SMS_AUTH_ID}',
             'x-ncp-service-secret': f'{SMS_SERVICE_SECRET}',
         }
+
         data = {
             'type': 'SMS',
             'contentType': 'COMM',

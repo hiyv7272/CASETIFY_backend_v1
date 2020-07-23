@@ -32,7 +32,8 @@ class SignUpView(View):
             validate_email(data['email'])
             validation = validate_input(data)
 
-            if validation: return validation
+            if validation:
+                return validation
 
             hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt()).decode()
             User(
@@ -71,23 +72,22 @@ class SignInView(View):
 class MyprofileView(View):
     @login_decorator
     def get(self, request):
+        user = User.objects.get(id=request.user.id)
 
         try:
-            user = User.objects.get(id=request.user.id)
-            result = {
-                "name": user.name,
-                "email": user.email,
-                "bio": user.introduction,
-                "website": user.website,
-                "location": user.location,
-                "twitter": user.twitter,
-                "images": user.image,
-                "mobile_number": user.mobile_number,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "address": user.address,
-                "zipcode": user.zipcode
-            }
+            result = dict()
+            result['name'] = user.name
+            result['email'] = user.email
+            result['bio'] = user.introduction
+            result['website'] = user.website
+            result['location'] = user.location
+            result['twitter'] = user.twitter
+            result['image'] = user.image
+            result['mobile_number'] = user.mobile_number
+            result['first_name'] = user.first_name
+            result['last_name'] = user.last_name
+            result['address'] = user.address
+            result['zipcode'] = user.zipcode
 
             return JsonResponse(result, status=200)
 
@@ -102,15 +102,14 @@ class MyprofileEditView(View):
     def post(self, request):
         data = json.loads(request.body)
         user = User.objects.get(id=request.user.id)
-        try:
 
-            user.name = data['name']
-            user.email = data['email']
-            user.introduction = data['bio']
-            user.website = data['website']
-            user.location = data['location']
-            user.twitter = data['twitter']
-            user.image = data['images']
+        try:
+            user.name = data.get('name')
+            user.introduction = data.get('bio')
+            user.website = data.get('website')
+            user.location = data.get('location')
+            user.twitter = data.get('twitter')
+            user.image = data.get('images')
             user.save()
 
             return HttpResponse(status=200)
@@ -126,8 +125,8 @@ class MyShippingAddressEditView(View):
     def post(self, request):
         data = json.loads(request.body)
         user = User.objects.get(id=request.user.id)
-        try:
 
+        try:
             user.first_name = data['first_name']
             user.last_name = data['last_name']
             user.address = data['address']
@@ -145,6 +144,7 @@ class MyShippingAddressEditView(View):
 
 class KakaologinView(View):
     def post(self, request):
+
         try:
             kakao_token = request.headers["Authorization"]
             print('kt', kakao_token)
