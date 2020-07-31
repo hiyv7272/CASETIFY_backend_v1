@@ -7,7 +7,7 @@ class Item(models.Model):
     name = models.CharField(max_length=500)
 
     class Meta:
-        db_table = 'items'
+        db_table = 'ITEM'
 
 
 class Artist(models.Model):
@@ -15,14 +15,14 @@ class Artist(models.Model):
     description = models.CharField(max_length=500, null=True)
 
     class Meta:
-        db_table = 'artists'
+        db_table = 'ARTIST'
 
 
 class DeviceBrand(models.Model):
     name = models.CharField(max_length=500)
 
     class Meta:
-        db_table = 'device_brands'
+        db_table = 'DEVICE_BRAND'
 
 
 class Device(models.Model):
@@ -30,7 +30,7 @@ class Device(models.Model):
     device_brand = models.ForeignKey(DeviceBrand, on_delete=models.SET_NULL, null=True)
 
     class Meta:
-        db_table = 'devices'
+        db_table = 'DEVICE'
 
 
 class DeviceColor(models.Model):
@@ -38,32 +38,30 @@ class DeviceColor(models.Model):
     device = models.ForeignKey(Device, on_delete=models.SET_NULL, null=True)
 
     class Meta:
-        db_table = 'device_colors'
+        db_table = 'DEVICE_COLOR'
 
 
 class ArtworkType(models.Model):
     name = models.CharField(max_length=2500, null=True)
 
     class Meta:
-        db_table = 'artwork_types'
+        db_table = 'ARTWORK_TYPE'
 
 
 class Artwork(models.Model):
+    ITME = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True)
+    DEVICE = models.ForeignKey(Device, on_delete=models.SET_NULL, null=True)
+    ARTWORK_TYPE = models.ForeignKey(ArtworkType, on_delete=models.SET_NULL, null=True)
+    ARTIST = models.ForeignKey(Artist, on_delete=models.SET_NULL, null=True)
     name = models.CharField(max_length=500)
-    item = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True)
-    device = models.ForeignKey(Device, on_delete=models.SET_NULL, null=True)
-    artwork_type = models.ForeignKey(ArtworkType, on_delete=models.SET_NULL, null=True)
-    artist = models.ForeignKey(Artist, on_delete=models.SET_NULL, null=True)
     is_customed = models.NullBooleanField(null=True)
     custom_option = models.TextField(max_length=3000, null=True)
     introduction = models.TextField(max_length=2000, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    color = models.ManyToManyField('ArtworkColor', through='ArtworkColorArtwork', related_name='artwork_artworkcolor')
-    price = models.ManyToManyField('Device', through='ArtworkPrice', related_name='artwork_price')
 
     class Meta:
-        db_table = 'artworks'
+        db_table = 'ARTWORK'
 
 
 class ArtworkColor(models.Model):
@@ -71,30 +69,30 @@ class ArtworkColor(models.Model):
     info = models.CharField(max_length=2500, null=True)
 
     class Meta:
-        db_table = 'artwork_colors'
+        db_table = 'ARTWORK_COLOR'
 
 
 class ArtworkColorArtwork(models.Model):
-    artwork = models.ForeignKey(Artwork, on_delete=models.SET_NULL, null=True)
-    artwork_color = models.ForeignKey(ArtworkColor, on_delete=models.SET_NULL, null=True)
-    device = models.ForeignKey(Device, on_delete=models.SET_NULL, null=True)
+    ARTWORK = models.ForeignKey(Artwork, on_delete=models.SET_NULL, null=True)
+    ARTWORK_COLOR = models.ForeignKey(ArtworkColor, on_delete=models.SET_NULL, null=True)
+    DEVICE = models.ForeignKey(Device, on_delete=models.SET_NULL, null=True)
 
     class Meta:
-        db_table = 'artwork_color_artworks'
+        db_table = 'ARTWORK_COLOR_ARTWORK'
 
 
 class ArtworkPrice(models.Model):
-    artwork = models.ForeignKey(Artwork, on_delete=models.SET_NULL, null=True)
-    device = models.ForeignKey(Device, on_delete=models.SET_NULL, null=True)
+    ARTWORK = models.ForeignKey(Artwork, on_delete=models.SET_NULL, null=True)
+    DEVICE = models.ForeignKey(Device, on_delete=models.SET_NULL, null=True)
     price = models.DecimalField(max_digits=18, decimal_places=2, null=True)
 
     class Meta:
-        db_table = 'artwork_prices'
+        db_table = 'ARTWORK_PRICE'
 
 
 class CustomArtworkImage(models.Model):
-    artwork = models.ForeignKey(Artwork, on_delete=models.SET_NULL, null=True)
-    artwork_color = models.ForeignKey(ArtworkColor, on_delete=models.SET_NULL, null=True)
+    ARTWORK = models.ForeignKey(Artwork, on_delete=models.SET_NULL, null=True)
+    ARTWORK_COLOR = models.ForeignKey(ArtworkColor, on_delete=models.SET_NULL, null=True)
     image_1 = models.URLField(max_length=2500, null=True)
     image_2 = models.URLField(max_length=2500, null=True)
     image_3 = models.URLField(max_length=2500, null=True)
@@ -102,13 +100,13 @@ class CustomArtworkImage(models.Model):
     image_5 = models.URLField(max_length=2500, null=True)
 
     class Meta:
-        db_table = 'custom_artwork_images'
+        db_table = 'CUSTOM_ARTWORK_IMAGE'
 
 
 class RegularArtworkImage(models.Model):
-    artwork = models.ForeignKey(Artwork, on_delete=models.SET_NULL, null=True)
-    artwork_color = models.ForeignKey(ArtworkColor, on_delete=models.SET_NULL, null=True)
-    device_color = models.ForeignKey(DeviceColor, on_delete=models.SET_NULL, null=True)
+    ARTWORK = models.ForeignKey(Artwork, on_delete=models.SET_NULL, null=True)
+    ARTWORK_COLOR = models.ForeignKey(ArtworkColor, on_delete=models.SET_NULL, null=True)
+    DEVICE_COLOR = models.ForeignKey(DeviceColor, on_delete=models.SET_NULL, null=True)
     image_1 = models.URLField(max_length=2500, null=True)
     image_2 = models.URLField(max_length=2500, null=True)
     image_3 = models.URLField(max_length=2500, null=True)
@@ -116,16 +114,16 @@ class RegularArtworkImage(models.Model):
     image_5 = models.URLField(max_length=2500, null=True)
 
     class Meta:
-        db_table = 'regular_artwork_images'
+        db_table = 'REGULAR_ARTWORK_IMAGE'
 
 
 class ArtworkReview(models.Model):
-    artwork = models.ForeignKey(Artwork, on_delete=models.SET_NULL, null=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    ARTWORK = models.ForeignKey(Artwork, on_delete=models.SET_NULL, null=True)
+    USER = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     rate = models.PositiveSmallIntegerField(null=True)
     comment_title = models.CharField(max_length=500, null=True)
     comment_text = models.TextField(max_length=1000, null=True)
     is_buyer = models.NullBooleanField(null=True)
 
     class Meta:
-        db_table = 'artwork_reviews'
+        db_table = 'ARTWORK_REVIEW'

@@ -16,7 +16,7 @@ class UserTest(TestCase):
             email='ordertest@gmail.com',
             password=hashed_password,
             name="ordertest",
-            introduction="hello my name is test",
+            bio="hello my name is test",
             website="http://test.com",
             location="Republic of Korea",
             twitter="@ordertest",

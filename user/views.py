@@ -78,7 +78,7 @@ class MyprofileView(View):
             result = dict()
             result['name'] = user.name
             result['email'] = user.email
-            result['bio'] = user.introduction
+            result['bio'] = user.bio
             result['website'] = user.website
             result['location'] = user.location
             result['twitter'] = user.twitter
@@ -91,13 +91,11 @@ class MyprofileView(View):
 
             return JsonResponse(result, status=200)
 
-        except user.DoesNotExist:
+        except User.DoesNotExist:
             return JsonResponse({"message": "INVALID_USER"}, status=400)
         except KeyError:
             return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
 
-
-class MyprofileEditView(View):
     @login_decorator
     def post(self, request):
         data = json.loads(request.body)
@@ -105,7 +103,7 @@ class MyprofileEditView(View):
 
         try:
             user.name = data.get('name')
-            user.introduction = data.get('bio')
+            user.bio = data.get('bio')
             user.website = data.get('website')
             user.location = data.get('location')
             user.twitter = data.get('twitter')
@@ -120,7 +118,7 @@ class MyprofileEditView(View):
             return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
 
 
-class MyShippingAddressEditView(View):
+class MyShippingInfoView(View):
     @login_decorator
     def post(self, request):
         data = json.loads(request.body)

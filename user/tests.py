@@ -79,7 +79,7 @@ class MyprofileTest(TestCase):
             email='profiletest@gmail.com',
             password=hashed_password,
             name="test",
-            introduction="hello my name is test",
+            bio="hello my name is test",
             website="http://test.com",
             location="Republic of Korea",
             twitter="@test",
