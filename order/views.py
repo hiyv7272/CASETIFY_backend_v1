@@ -7,7 +7,7 @@ from django.core.mail.message import EmailMessage
 from user.utils import login_decorator
 from my_settings import SMS_AUTH_ID, SMS_SERVICE_SECRET, SMS_FROM_NUMBER, SMS_URL
 
-from .models import Order, Cart
+from .models import Order, OrderStatus, Cart
 from user.models import User
 
 
@@ -96,6 +96,7 @@ class CartView(View):
                 dict_data['artwork_color'] = result.ARTWORK_COLOR.name
                 dict_data['artwork_price'] = result.ARTWORK_PRICE.price
                 dict_data['is_customed'] = result.is_customed
+                dict_data['is_checkout'] = result.is_checkout
                 dict_data['custom_info'] = result.custom_info
 
                 custom_cart_list.append(dict_data)
@@ -108,6 +109,7 @@ class CartView(View):
                 dict_data['artwork_color'] = result.ARTWORK_COLOR.name
                 dict_data['artwork_price'] = result.ARTWORK_PRICE.price
                 dict_data['is_customed'] = result.is_customed
+                dict_data['is_checkout'] = result.is_checkout
                 dict_data['custom_info'] = result.custom_info
 
                 regular_cart_list.append(dict_data)
@@ -125,49 +127,6 @@ class CartView(View):
 
 class OrderView(View):
     @login_decorator
-    def get(self, request):
-        user = User.objects
-        order = Order.objects.select_related(
-            'user',
-            'artwork',
-            'artwork_color',
-            'artwork_price',
-            'order_status'
-        ).filter(user=request.user.id, order_status=3).order_by('id')
-
-        try:
-            orders = list()
-            user_data = dict()
-
-            user_data['email'] = user.email
-            user_data['mobile_number'] = user.mobile_number
-            user_data['first_name'] = user.first_name
-            user_data['last_name'] = user.last_name
-            user_data['address'] = user.address
-            user_data['zipcode'] = user.zipcode
-
-            for result in order:
-                dict_data = dict()
-                dict_data['id'] = result.id
-                dict_data['user'] = result.user.name
-                dict_data['artwork'] = result.artwork.name
-                dict_data['artwork_color'] = result.artwork_color.name
-                dict_data['artwork_price'] = result.artwork_price.price
-                dict_data['is_customed'] = result.is_customed
-                dict_data['custom_info'] = result.custom_info
-                dict_data['order_status'] = result.order_status.name
-
-                orders.append(dict_data)
-
-            return JsonResponse({
-                "user_data": user_data,
-                "orders": orders,
-            }, status=200)
-
-        except KeyError:
-            return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
-
-    @login_decorator
     def post(self, request):
         data = json.loads(request.body)
         user = User.objects.get(id=request.user.id)
@@ -180,10 +139,16 @@ class OrderView(View):
             user.zipcode = data['zipcode']
             user.save()
 
-            for id in data['id']:
-                Order.objects.filter(id=id).update(order_status_id=data['order_status_id'])
+            for cart_id in data['id']:
 
-            email(data, user)
+                Cart.objects.filter(id=cart_id).update(is_checkout=True)
+                Order(
+                    CART=Cart.objects.get(id=cart_id),
+                    USER=user,
+                    ORDER_STATUS=OrderStatus.objects.get(id=3)
+                ).save()
+
+            # email(data, user)
             # self.sms_service(data, user)
             return HttpResponse(status=200)
 
@@ -191,3 +156,56 @@ class OrderView(View):
             return JsonResponse({"message": "INVALID_VALUE"}, status=400)
         except KeyError:
             return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
+
+    @login_decorator
+    def get(self, request):
+        user = User.objects.get(id=request.user.id)
+        order = Order.objects.select_related(
+            'CART',
+            'USER',
+            'ORDER_STATUS'
+        ).filter(USER=request.user.id, ORDER_STATUS=3).order_by('id')
+
+        cart = Cart.objects.select_related(
+            'USER',
+            'ARTWORK',
+            'ARTWORK_COLOR',
+            'ARTWORK_PRICE'
+        ).filter(USER=request.user.id, is_checkout=True)
+
+        try:
+            orders = list()
+            user_data = dict()
+
+            user_data['email'] = user.email
+            user_data['mobile_number'] = user.mobile_number
+            user_data['first_name'] = user.first_name
+            user_data['last_name'] = user.last_name
+            user_data['address'] = user.address
+            user_data['zipcode'] = user.zipcode
+
+            for order_row in order:
+                dict_data = dict()
+                dict_data['cart_id'] = order_row.CART.id
+                dict_data['user'] = order_row.USER.name
+                dict_data['order_status'] = order_row.ORDER_STATUS.name
+
+                for cart_row in cart:
+                    if cart_row.id == dict_data['cart_id']:
+                        dict_data['artwork'] = cart_row.ARTWORK.name
+                        dict_data['artwork_color'] = cart_row.ARTWORK_COLOR.name
+                        dict_data['artwork_price'] = cart_row.ARTWORK_PRICE.price
+                        dict_data['is_customed'] = cart_row.is_customed
+                        dict_data['custom_info'] = cart_row.custom_info
+
+                orders.append(dict_data)
+
+            return JsonResponse({
+                "user_data": user_data,
+                "orders": orders,
+            }, status=200)
+
+        except KeyError:
+            return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
+
+
