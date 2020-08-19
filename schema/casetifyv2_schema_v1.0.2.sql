@@ -1,12 +1,497 @@
--- create database
--- create database CASETIFYv2 character set utf8mb4 collate utf8mb4_general_ci;
-
-
--- delete database
--- DROP DATABASE IF EXISTS CASETIFYv2;
+###############################################################################
+# [CASETIFY_V2 초기 schema 스크립트]
+###############################################################################
 
 -- set foreign_key_checks = 0
 set foreign_key_checks = 0;
+
+-- 0. 세션 트랜잭션 설정
+ SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+-- 0. CREATE DATABASE CASETIFY_V2
+-- DROP DATABASE IF EXISTS CASETIFY_V2;
+--
+
+-- COMMIT;
+
+-- 0. delete database
+-- DROP DATABASE IF EXISTS CASETIFYv2;
+
+
+-- CREATE table USER
+DROP TABLE IF EXISTS CASETIFY_V2.USER;
+CREATE TABLE CASETIFY_V2.`USER`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `kakao_token` varchar(200) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `name` varchar(15) COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(200) COLLATE utf8mb4_general_ci NOT NULL,
+  `password` varchar(300) COLLATE utf8mb4_general_ci NOT NULL,
+  `mobile_number` varchar(11) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `first_name` varchar(15) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `last_name` varchar(15) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `introdoction` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `website_url` varchar(2500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `location` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `create_datetime` datetime(6) NOT NULL,
+  `update_datetime` datetime(6) DEFAULT NULL,
+  `is_use` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `USR_KAKAO_ID` (`kakao_token`),
+  UNIQUE KEY `USR_EMAIL` (`email`),
+  UNIQUE KEY `USR_MOBILE_NUMBER` (`mobile_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+
+-- CREATE table FEATURED
+DROP TABLE IF EXISTS CASETIFY_V2.FEATURED;
+CREATE TABLE CASETIFY_V2.`FEATURED`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+--  INSERT INTO FEATURED table
+INSERT INTO FEATURED (name) VALUES ('phone_case');
+INSERT INTO FEATURED (name) VALUES ('watch_band');
+INSERT INTO FEATURED (name) VALUES ('ACC');
+
+
+-- CREATE table DEVICE_BRAND
+DROP TABLE IF EXISTS CASETIFY_V2.DEVICE_BRAND;
+CREATE TABLE CASETIFY_V2.`DEVICE_BRAND`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+
+-- INSERT INTO DEVICE_BRAND table
+INSERT INTO DEVICE_BRAND (name) VALUES ('Apple');
+INSERT INTO DEVICE_BRAND (name) VALUES ('Samsung');
+INSERT INTO DEVICE_BRAND (name) VALUES ('LG');
+
+
+-- CREATE table DEVICE_COLOR
+DROP TABLE IF EXISTS CASETIFY_V2.DEVICE_COLOR;
+CREATE TABLE CASETIFY_V2.`DEVICE_COLOR`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+-- DEVICE_COLOR table
+INSERT INTO DEVICE_COLOR (name) VALUES ('Silver');
+INSERT INTO DEVICE_COLOR (name) VALUES ('Gold');
+INSERT INTO DEVICE_COLOR (name) VALUES ('Space_Grey');
+INSERT INTO DEVICE_COLOR (name) VALUES ('White');
+INSERT INTO DEVICE_COLOR (name) VALUES ('Black');
+INSERT INTO DEVICE_COLOR (name) VALUES ('Red');
+INSERT INTO DEVICE_COLOR (name) VALUES ('Coral');
+INSERT INTO DEVICE_COLOR (name) VALUES ('Yellow');
+INSERT INTO DEVICE_COLOR (name) VALUES ('Blue');
+INSERT INTO DEVICE_COLOR (name) VALUES ('Green');
+INSERT INTO DEVICE_COLOR (name) VALUES ('Purple');
+INSERT INTO DEVICE_COLOR (name) VALUES ('Midnight_Green');
+
+
+-- CREATE table DEVICE
+DROP TABLE IF EXISTS CASETIFY_V2.DEVICE;
+CREATE TABLE CASETIFY_V2.`DEVICE`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `DEVICE_BRAND_id` int NOT NULL,
+  `DEVICE_COLOR_id`int NOT NULL,
+  `name` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `is_use` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `DEVICE_DEVICE_BRAND_id_FK` (`DEVICE_BRAND_id`),
+  KEY `DEVICE_DEVICE_COLOR_id_FK` (`DEVICE_COLOR_id`),
+  CONSTRAINT `DEVICE_DEVICE_BRAND_id_FK` FOREIGN KEY (`DEVICE_BRAND_id`) REFERENCES `DEVICE_BRAND` (`id`),
+  CONSTRAINT `DEVICE_DEVICE_COLOR_id_FK` FOREIGN KEY (`DEVICE_COLOR_id`) REFERENCES `DEVICE_COLOR` (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+-- INSERT INTO DEVICE
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='White' LIMIT 1), 'iphone_SE2');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Black' LIMIT 1), 'iphone_SE2');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Red' LIMIT 1), 'iphone_SE2');
+
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Silver' LIMIT 1), 'iphone_11_Pro_Max');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Gold' LIMIT 1), 'iphone_11_Pro_Max');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Space_Grey' LIMIT 1), 'iphone_11_Pro_Max');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Midnight_Green' LIMIT 1), 'iphone_11_Pro_Max');
+
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Silver' LIMIT 1), 'iphone_11_Pro');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Gold' LIMIT 1), 'iphone_11_Pro');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Space_Grey' LIMIT 1), 'iphone_11_Pro');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Midnight_Green' LIMIT 1), 'iphone_11_Pro');
+
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='White' LIMIT 1), 'iphone_11');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Black' LIMIT 1), 'iphone_11');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Red' LIMIT 1), 'iphone_11');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Yellow' LIMIT 1), 'iphone_11');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Green' LIMIT 1), 'iphone_11');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Purple' LIMIT 1), 'iphone_11');
+
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Silver' LIMIT 1), 'iphone_Xs');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Space_Grey' LIMIT 1), 'iphone_Xs');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Gold' LIMIT 1), 'iphone_Xs');
+
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Silver' LIMIT 1), 'iphone_Xs_Max');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Space_Grey' LIMIT 1), 'iphone_Xs_Max');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Gold' LIMIT 1), 'iphone_Xs_Max');
+
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='White' LIMIT 1), 'iphone_XR');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Black' LIMIT 1), 'iphone_XR');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Red' LIMIT 1), 'iphone_XR');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Coral' LIMIT 1), 'iphone_XR');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Yellow' LIMIT 1), 'iphone_XR');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Blue' LIMIT 1), 'iphone_XR');
+
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Silver' LIMIT 1), 'iphone_X');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Space_Grey' LIMIT 1), 'iphone_X');
+
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Silver' LIMIT 1), 'iphone_8');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Gold' LIMIT 1), 'iphone_8');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Space_Grey' LIMIT 1), 'iphone_8');
+INSERT INTO DEVICE (DEVICE_BRAND_id, DEVICE_COLOR_id, name) VALUES (1, (SELECT id from DEVICE_COLOR WHERE name='Red' LIMIT 1), 'iphone_8');
+
+
+-- CREATE table ARTIST
+DROP TABLE IF EXISTS CASETIFY_V2.ARTIST;
+CREATE TABLE CASETIFY_V2.`ARTIST`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `description` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+-- INSERT INTO ARTIST
+INSERT INTO ARTIST (name, description) VALUES ('CASETIFYLAB', 'This artwork is hand-picked and curated exclusively for Casetify. To help create sustainable jobs for creative communities across the globe, we''re committed to giving a portion of our profits back to our artists.');
+INSERT INTO ARTIST (name, description) VALUES ('Vicky Webb', 'This artwork is hand-picked and curated exclusively for Casetify. To help create sustainable jobs for creative communities across the globe, we''re committed to giving a portion of our profits back to our artists.');
+
+
+-- CREATE table ARTWORK_COLOR
+DROP TABLE IF EXISTS CASETIFY_V2.ARTWORK_COLOR;
+CREATE TABLE CASETIFY_V2.`ARTWORK_COLOR`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `info` varchar(1000) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+-- INSERT INTO ARTWORK_COLOR
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Jet Black', '');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Light Pink', '');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Navy Blue', '');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Poppy Red', '');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Sicilian Yellow', '');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Chocolate Brown', '');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Light Purple', '');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Sage Green', '');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Sky Blue', '');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Stone Grey', '');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Clear', '#333');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Black', 'radial-gradient(#fff 0%, #fff 48%, #000 52%, #000 100%)');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Pink', 'radial-gradient(#FF7 0%, #fff 48%, pink 52%, pink 100%)');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Pink/Blue', 'https://cdn-stamplib.casetify.com/cms/image/9457634f344728ab9fec8735b52590a7.png');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Neon Yellow', '#eaf850');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Iridescent', 'https://cdn-stamplib.casetify.com/cms/image/69c535ce7e3865cd4709a80874622d31.jpg');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Red', 'red');
+INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Yellow', 'yellow');
+
+
+-- CREATE table ARTWORK_TYPE
+DROP TABLE IF EXISTS CASETIFY_V2.ARTWORK_TYPE;
+CREATE TABLE CASETIFY_V2.`ARTWORK_TYPE`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+-- INSERT INTO ARTWORK_TYPE
+INSERT INTO ARTWORK_TYPE (name) VALUES ('Impact');
+INSERT INTO ARTWORK_TYPE (name) VALUES ('Premium Marble');
+INSERT INTO ARTWORK_TYPE (name) VALUES ('Neon Sand');
+INSERT INTO ARTWORK_TYPE (name) VALUES ('Glitter');
+INSERT INTO ARTWORK_TYPE (name) VALUES ('Luxe Pressed Flower');
+INSERT INTO ARTWORK_TYPE (name) VALUES ('Gold Karat');
+INSERT INTO ARTWORK_TYPE (name) VALUES ('Snap');
+INSERT INTO ARTWORK_TYPE (name) VALUES ('Grip');
+INSERT INTO ARTWORK_TYPE (name) VALUES ('Wallet');
+INSERT INTO ARTWORK_TYPE (name) VALUES ('Leather Card');
+INSERT INTO ARTWORK_TYPE (name) VALUES ('DTLA Impact Resistant');
+INSERT INTO ARTWORK_TYPE (name) VALUES ('Ultra Thin Skin');
+
+
+-- CREATE table ARTWORK
+DROP TABLE IF EXISTS CASETIFY_V2.ARTWORK;
+CREATE TABLE CASETIFY_V2.`ARTWORK`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `FEATRUED_id` int NOT NULL,
+  `DEVICE_id` int NOT NULL,
+  `ARTWORK_COLOR_id` int NOT NULL,
+  `ARTWORK_TYPE_id` int NOT NULL,
+  `ARTIST_id` int NOT NULL,
+  `name` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `description` varchar(2000) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `is_custom` tinyint(1) NOT NULL,
+  `create_datetime` datetime(6) NOT NULL,
+  `update_datetime` datetime(6) DEFAULT NULL,
+  `is_use` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ARTWORK_FEATRUED_id_FK` (`FEATRUED_id`),
+  KEY `ARTWORK_DEVICE_id_FK` (`DEVICE_id`),
+  KEY `ARTWORK_ARTWORK_COLOR_id` (`ARTOWKR_COLOR_id`),
+  KEY `ARTWORK_ARTWORK_TYPE_id` (`ARTWORK_TYPE_id`),
+  KEY `ARTWORK_ARTIST_id` (`ARTIST_id`),
+  CONSTRAINT `ARTWORK_FEATRUED_id_FK` FOREIGN KEY (`FEATRUED_id`) REFERENCES `FEATURED` (`id`),
+  CONSTRAINT `ARTWORK_DEVICE_id_FK` FOREIGN KEY (`DEVICE_id`) REFERENCES `DEVICE` (`id`),
+  CONSTRAINT `ARTWORK_ARTWORK_COLOR_id_FK` FOREIGN KEY (`ARTOWKR_COLOR_id`) REFERENCES `ARTOWKR_COLOR` (`id`),
+  CONSTRAINT `ARTWORK_ARTWORK_TYPE_id_FK` FOREIGN KEY (`ARTWORK_TYPE_id`) REFERENCES `ARTWORK_TYPE` (`id`),
+  CONSTRAINT `ARTWORK_ARTIST_id` FOREIGN KEY (`ARTIST_id`) REFERENCES `ARTIST` (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+-- INSERT INTO ARTWORK
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Monogram Studio', '1', '1', '1', '1', '1', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Dusty Pink Loepard Phone Case', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Floral', '1', '1', '2', '2', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Magnolia Branch', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('RAMEN BY POKETO', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Footprints', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Sun moon stars white galaxy', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Rainbow Cheetah by Megan Galante', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('PP-0008', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Camo grey', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('clouds', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Winter Tale Clear', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Waves Crashing', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Tiny Watercolor Dinos on transparent', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Gravity V2', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Black Transparent Leopard Print', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Red Roses (Transparent)', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Dark Floral', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('My Design -1', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('STICKER FEST', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Spring Botanicals 2', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Sunflowers', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('silver stars', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('BLACK PORTRAITS BY BODIL JANE', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Purple Peony Watercolor Floral Bouquet', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Solar System2', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Crystal ball on black background / mystical, magical, dreamy pattern', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Ill be there for you', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Candy Transparent', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Floral Collage', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Girl Boss', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Glitz + Glam', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('peekaboo cat on rose gold', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('My Secret Garden', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('LEOPARDS BY BODIL JANE', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Healing black', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Cute White UFO Space Alien Drawing Pattern', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Gigi Garden Florals', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Stop and smell the roses', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Monstera iPhone and ipod', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+INSERT INTO ARTWORK (name, FEATRUED_id, DEVICE_id, ARTWORK_COLOR_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('LANA LAVENDER MIX', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
+
+
+-- CREATE table ARTWORK_PRICE
+DROP TABLE IF EXISTS CASETIFY_V2.ARTWORK_PRICE;
+CREATE TABLE CASETIFY_V2.`ARTWORK_PRICE`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `ARTWORK_id` int NOT NULL,
+  `DEVICE_id`int NOT NULL,
+  `price` decimal(18,2) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ARTWORK_PRICE_ARTWORK_id_FK` (`ARTWORK_id`),
+  KEY `ARTWORK_PRICE_DEVICE_id` (`DEVICE_id`),
+  CONSTRAINT `ARTWORK_PRICE_ARTWORK_id_FK` FOREIGN KEY (`ARTWORK_id`) REFERENCES `ARTWORK` (`id`),
+  CONSTRAINT `ARTWORK_PRICE_DEVICE_id` FOREIGN KEY (`DEVICE_id`) REFERENCES `DEVICE` (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+
+-- CREATE table ARTWORK_COLOR_DEVICE
+DROP TABLE IF EXISTS CASETIFY_V2.ARTWORK_COLOR_DEVICE;
+CREATE TABLE CASETIFY_V2.`ARTWORK_COLOR_DEVICE`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `ARTWORK_id` int NOT NULL,
+  `ARTWORK_COLOR_id`int NOT NULL,
+  `DEVICE_id`int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ARTWORK_PRICE_ARTWORK_id_FK` (`ARTWORK_id`),
+  KEY `ARTWORK_ARTWORK_COLOR_id_FK` (`ARTWORK_COLOR_id`),
+  KEY `ARTWORK_DEVICE_id` (`DEVICE_id`),
+  CONSTRAINT `ARTWORK_PRICE_ARTWORK_id_FK` FOREIGN KEY (`ARTWORK_id`) REFERENCES `ARTWORK` (`id`),
+  CONSTRAINT `ARTWORK_ARTWORK_COLOR_id_FK` FOREIGN KEY (`ARTWORK_COLOR_id`) REFERENCES `ARTWORK_COLOR` (`id`),
+  CONSTRAINT `ARTWORK_DEVICE_id` FOREIGN KEY (`DEVICE_id`) REFERENCES `DEVICE` (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+
+-- CREATE table ARTWORK_IMAGE
+DROP TABLE IF EXISTS CASETIFY_V2.ARTWORK_IMAGE;
+CREATE TABLE CASETIFY_V2.`ARTWORK_IMAGE`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `ARTWORK_id` int NOT NULL,
+  `image_url_1` varchar(2500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `image_url_2` varchar(2500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `image_url_3` varchar(2500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `image_url_4` varchar(2500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `image_url_5` varchar(2500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ARTWORK_IMAGE_ARTWORK_id_KF` (`ARTWORK_id`),
+  CONSTRAINT `ARTWORK_IMAGE_ARTWORK_id_KF` FOREIGN KEY (`ARTWORK_id`) REFERENCES `ARTWORK` (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+
+-- CREATE table REVIEW
+DROP TABLE IF EXISTS CASETIFY_V2.REVIEW;
+CREATE TABLE CASETIFY_V2.`REVIEW`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `USER_id` int NOT NULL,
+  `ARTWORK_id`int NOT NULL,
+  `title` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `comment` varchar(1000) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `rate` smallint unsigned DEFAULT NULL,
+  `create_datetime` datetime(6) NOT NULL,
+  `update_datetime` datetime(6) DEFAULT NULL,
+  `is_use` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `REVIEW_USER_id_FK` (`USER_id`),
+  KEY `REVIEW_ARTWORK_id` (`ARTWORK_id`),
+  CONSTRAINT `REVIEW_USER_id_FK` FOREIGN KEY (`USER_id`) REFERENCES `USER` (`id`),
+  CONSTRAINT `REVIEW_ARTWORK_id` FOREIGN KEY (`ARTWORK_id`) REFERENCES `ARTWORK` (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+
+-- CREATE table CART
+DROP TABLE IF EXISTS CASETIFY_V2.CART;
+CREATE TABLE CASETIFY_V2.`CART`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `USER_id` int NOT NULL,
+  `ARTWORK_id`int NOT NULL,
+  `ARTWORK_COLOR_DEVICE_id`int NOT NULL,
+  `custom_info` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `create_datetime` datetime(6) NOT NULL,
+  `update_datetime` datetime(6) DEFAULT NULL,
+  `is_use` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `CART_USER_id_FK` (`USER_id`),
+  KEY `CART_ARTWORK_id` (`ARTWORK_id`),
+  KEY `CART_ARTWORK_COLOR_DEVICE_id_FK` (`ARTWORK_COLOR_DEVICE_id`),
+  CONSTRAINT `CART_USER_id_FK` FOREIGN KEY (`USER_id`) REFERENCES `USER` (`id`),
+  CONSTRAINT `CART_ARTWORK_id` FOREIGN KEY (`ARTWORK_id`) REFERENCES `ARTWORK_id` (`id`),
+  CONSTRAINT `CART_ARTWORK_COLOR_DEVICE_id_FK` FOREIGN KEY (`ARTWORK_COLOR_DEVICE_id`) REFERENCES `ARTWORK_COLOR_DEVICE` (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+
+-- CREATE table ORDERER
+DROP TABLE IF EXISTS CASETIFY_V2.ORDERER;
+CREATE TABLE CASETIFY_V2.`ORDERER`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `USER_id` int NOT NULL,
+  `name` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `address` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `zipcode` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `create_datetime` datetime(6) NOT NULL,
+  `update_datetime` datetime(6) DEFAULT NULL,
+  `is_use` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ORDERER_USER_id_FK` (`USER_id`),
+  KEY `CART_ARTWORK_id` (`ARTWORK_id`),
+  CONSTRAINT `ORDERER_USER_id_FK` FOREIGN KEY (`USER_id`) REFERENCES `USER` (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+
+-- CREATE table CHECKOUT
+DROP TABLE IF EXISTS CASETIFY_V2.CHECKOUT;
+CREATE TABLE CASETIFY_V2.`CHECKOUT`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `USER_id` int NOT NULL,
+  `CART_id`int NOT NULL,
+  `ORDERER_id`int NOT NULL,
+  `ARTWORK_id`int NOT NULL,
+  `ARTWORK_COLOR_DEVICE_id`int NOT NULL,
+  `custom_info` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `sell_price` decimal(18,2) DEFAULT NULL,
+  `create_datetime` datetime(6) NOT NULL,
+  `update_datetime` datetime(6) DEFAULT NULL,
+  `is_use` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `CHECKOUT_USER_id_FK` (`USER_id`),
+  KEY `CHECKOUT_ORDERER_id_FK` (`ORDERER_id`),
+  KEY `CHECKOUT_ARTWORK_id` (`ARTWORK_id`),
+  KEY `CHECKOUT_ARTWORK_COLOR_DEVICE_id_FK` (`ARTWORK_COLOR_DEVICE_id`),
+  CONSTRAINT `CHECKOUT_USER_id_FK` FOREIGN KEY (`USER_id`) REFERENCES `USER` (`id`),
+  CONSTRAINT `CHECKOUT_ORDERER_id_FK` FOREIGN KEY (`ORDERER_id`) REFERENCES `ORDERER` (`id`),
+  CONSTRAINT `CHECKOUT_ARTWORK_id` FOREIGN KEY (`ARTWORK_id`) REFERENCES `ARTWORK` (`id`),
+  CONSTRAINT `CHECKOUT_ARTWORK_COLOR_DEVICE_id_FK` FOREIGN KEY (`ARTWORK_COLOR_DEVICE_id`) REFERENCES `ARTWORK_COLOR_DEVICE` (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+
+-- CREATE table ORDER_STATUS
+DROP TABLE IF EXISTS CASETIFY_V2.ORDER_STATUS;
+CREATE TABLE CASETIFY_V2.`ORDER_STATUS`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
+
+-- CREATE table ORDER
+DROP TABLE IF EXISTS CASETIFY_V2.ORDER;
+CREATE TABLE CASETIFY_V2.`ORDER`
+(
+  `id` int NOT NULL AUTO_INCREMENT,
+  `USER_id` int NOT NULL,
+  `CHECKOUT_id`int NOT NULL,
+  `ORDER_STATUS_id`int NOT NULL,
+  `custom_info` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `create_datetime` datetime(6) NOT NULL,
+  `update_datetime` datetime(6) DEFAULT NULL,
+  `is_use` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ORDER_USER_id_FK` (`USER_id`),
+  KEY `ORDER_CHECKOUT_id` (`CHECKOUT_id`),
+  KEY `ORDER_ORDER_STATUS_id` (`ORDER_STATUS_id`),
+  CONSTRAINT `ORDER_USER_id_FK` FOREIGN KEY (`ORDER_STATUS_id`) REFERENCES `USER` (`id`),
+  CONSTRAINT `ORDER_CHECKOUT_id` FOREIGN KEY (`CHECKOUT_id`) REFERENCES `CHECKOUT` (`id`),
+  CONSTRAINT `ORDER_ORDER_STATUS_id` FOREIGN KEY (`ORDER_STATUS_id`) REFERENCES `ORDER_STATUS` (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+COMMIT;
+
 
 -- ORDER_STATUS table
 INSERT INTO ORDER_STATUS (name) VALUES ('주문완료');
@@ -18,203 +503,8 @@ INSERT INTO ORDER_STATUS (name) VALUES ('결제완료');
 INSERT INTO ORDER_STATUS (name) VALUES ('결제취소');
 
 
---  ITEM table
-INSERT INTO ITEM (name) VALUES ('phone_case');
-
-INSERT INTO ITEM (name) VALUES ('watch_band');
-
-INSERT INTO ITEM (name) VALUES ('ACC');
-
-
--- ARTIST table
-INSERT INTO ARTIST (name, description) VALUES ('CASETIFYLAB', 'This artwork is hand-picked and curated exclusively for Casetify. To help create sustainable jobs for creative communities across the globe, we''re committed to giving a portion of our profits back to our artists.');
-
-INSERT INTO ARTIST (name, description) VALUES ('Vicky Webb', 'This artwork is hand-picked and curated exclusively for Casetify. To help create sustainable jobs for creative communities across the globe, we''re committed to giving a portion of our profits back to our artists.');
-
-
--- DEVICE_BRAND table
-INSERT INTO DEVICE_BRAND (name) VALUES ('Apple');
-
-INSERT INTO DEVICE_BRAND (name) VALUES ('Samsung');
-
-INSERT INTO DEVICE_BRAND (name) VALUES ('LG');
-
-
--- DEVICE table
-INSERT INTO DEVICE (name) VALUES ('iphone_8');
-
-INSERT INTO DEVICE (name) VALUES ('iphone_X');
-
-INSERT INTO DEVICE (name) VALUES ('iphone_XR');
-
-INSERT INTO DEVICE (name) VALUES ('iphone_XS');
-
-INSERT INTO DEVICE (name) VALUES ('iphone_XS_MAX');
-
-INSERT INTO DEVICE (name) VALUES ('iphone_11');
-
-INSERT INTO DEVICE (name) VALUES ('iphone_11_PRO');
-
-INSERT INTO DEVICE (name) VALUES ('iphone_11_PRO_MAX');
-
-
--- DEVICE_COLOR table
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('gold', 1);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('silver', 1);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('space_grey', 1);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('silver', 2);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('space_grey', 2);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('red', 3);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('coral', 3);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('yellow', 3);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('blue', 3);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('white', 3);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('black', 3);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('gold', 4);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('silver', 4);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('space_grey', 4);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('red', 5);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('coral', 5);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('yellow', 5);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('green', 5);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('white', 5);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('black', 5);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('midnight_green', 6);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('space_grey', 6);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES ('silver', 6);
-
-INSERT INTO DEVICE_COLOR (name, DEVICE_id) VALUES('gold', 6);
-
-
-
--- ARTWORK_TYPE table
-INSERT INTO ARTWORK_TYPE (name) VALUES ('Impact');
-
-INSERT INTO ARTWORK_TYPE (name) VALUES ('Premium Marble');
-
-INSERT INTO ARTWORK_TYPE (name) VALUES ('Neon Sand');
-
-INSERT INTO ARTWORK_TYPE (name) VALUES ('Glitter');
-
-INSERT INTO ARTWORK_TYPE (name) VALUES ('Luxe Pressed Flower');
-
-INSERT INTO ARTWORK_TYPE (name) VALUES ('Gold Karat');
-
-INSERT INTO ARTWORK_TYPE (name) VALUES ('Snap');
-
-INSERT INTO ARTWORK_TYPE (name) VALUES ('Grip');
-
-INSERT INTO ARTWORK_TYPE (name) VALUES ('Wallet');
-
-INSERT INTO ARTWORK_TYPE (name) VALUES ('Leather Card');
-
-INSERT INTO ARTWORK_TYPE (name) VALUES ('DTLA Impact Resistant');
-
-INSERT INTO ARTWORK_TYPE (name) VALUES ('Ultra Thin Skin');
-
-
--- ARTWORK_COLOR table
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Jet Black', '');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Light Pink', '');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Navy Blue', '');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Poppy Red', '');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Sicilian Yellow', '');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Chocolate Brown', '');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Light Purple', '');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Sage Green', '');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Sky Blue', '');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Stone Grey', '');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Clear', '#333');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Black', 'radial-gradient(#fff 0%, #fff 48%, #000 52%, #000 100%)');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Pink', 'radial-gradient(#FF7 0%, #fff 48%, pink 52%, pink 100%)');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Pink/Blue', 'https://cdn-stamplib.casetify.com/cms/image/9457634f344728ab9fec8735b52590a7.png');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Neon Yellow', '#eaf850');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Iridescent', 'https://cdn-stamplib.casetify.com/cms/image/69c535ce7e3865cd4709a80874622d31.jpg');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Red', 'red');
-
-INSERT INTO ARTWORK_COLOR (name, info) VALUES ('Yellow', 'yellow');
-
 
 -- ARTWORK table
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Monogram Studio', '1', '1', '1', '1', '1', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Dusty Pink Loepard Phone Case', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Floral', '1', '1', '2', '2', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Magnolia Branch', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('RAMEN BY POKETO', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Footprints', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Sun moon stars white galaxy', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Rainbow Cheetah by Megan Galante', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('PP-0008', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Camo grey', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('clouds', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Winter Tale Clear', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Waves Crashing', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Tiny Watercolor Dinos on transparent', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Gravity V2', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Black Transparent Leopard Print', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Red Roses (Transparent)', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Dark Floral', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('My Design -1', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('STICKER FEST', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Spring Botanicals 2', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Sunflowers', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('silver stars', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('BLACK PORTRAITS BY BODIL JANE', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Purple Peony Watercolor Floral Bouquet', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Solar System2', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Crystal ball on black background / mystical, magical, dreamy pattern', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Ill be there for you', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Candy Transparent', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Floral Collage', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Girl Boss', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Glitz + Glam', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('peekaboo cat on rose gold', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('My Secret Garden', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('LEOPARDS BY BODIL JANE', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Healing black', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Cute White UFO Space Alien Drawing Pattern', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Gigi Garden Florals', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Stop and smell the roses', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('Monstera iPhone and ipod', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
-INSERT INTO ARTWORK (name, ITME_id, DEVICE_id, ARTWORK_TYPE_id, ARTIST_id, is_customed, custom_option, introduction, created_at, updated_at) VALUES ('LANA LAVENDER MIX', '1', '1', '2', '1', '0', '', '',NOW(),NOW());
 
 
 -- ARTWORK_PRICE table
