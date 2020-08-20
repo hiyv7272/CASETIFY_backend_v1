@@ -27,7 +27,6 @@ def validate_input(data):
 class SignUpView(View):
     def post(self, request):
         data = json.loads(request.body)
-        user = User.objects.all()
 
         try:
             validate_email(data['email'])
@@ -37,7 +36,7 @@ class SignUpView(View):
                 return validation
 
             hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt()).decode()
-            user.create(
+            User(
                 email=data['email'],
                 password=hashed_password,
                 mobile_number=data['mobile_number'],
