@@ -37,11 +37,12 @@ class SignUpView(View):
                 return validation
 
             hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt()).decode()
-            user.email = data['email']
-            user.password = hashed_password
-            user.mobile_number = data['mobile_number']
-            user.is_use = True
-            user.save()
+            user.create(
+                email=data['email'],
+                password=hashed_password,
+                mobile_number=data['mobile_number'],
+                is_use=True
+            ).save()
 
             return HttpResponse(status=200)
 
