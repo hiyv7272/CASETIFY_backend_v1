@@ -83,7 +83,7 @@ class MyprofileView(View):
             result['mobile_number'] = user.mobile_number
             result['first_name'] = user.first_name
             result['last_name'] = user.last_name
-            result['introduction'] = user.bio
+            result['introduction'] = user.introduction
             result['website'] = user.website_url
             result['location'] = user.location
             result['twitter'] = user.twitter
