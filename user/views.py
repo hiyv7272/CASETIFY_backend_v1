@@ -27,6 +27,7 @@ def validate_input(data):
 class SignUpView(View):
     def post(self, request):
         data = json.loads(request.body)
+        user = User.objects.all()
 
         try:
             validate_email(data['email'])
@@ -36,11 +37,12 @@ class SignUpView(View):
                 return validation
 
             hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt()).decode()
-            User(
-                email=data['email'],
-                password=hashed_password,
-                mobile_number=data['mobile_number']
-            ).save()
+            user.email = data['email']
+            user.password = hashed_password
+            user.mobile_number = data['mobile_number']
+            user.is_use = True
+            user.save()
+
             return HttpResponse(status=200)
 
         except ValidationError:
@@ -78,16 +80,14 @@ class MyprofileView(View):
             result = dict()
             result['name'] = user.name
             result['email'] = user.email
-            result['bio'] = user.bio
-            result['website'] = user.website
-            result['location'] = user.location
-            result['twitter'] = user.twitter
-            result['image'] = user.image
             result['mobile_number'] = user.mobile_number
             result['first_name'] = user.first_name
             result['last_name'] = user.last_name
-            result['address'] = user.address
-            result['zipcode'] = user.zipcode
+            result['introduction'] = user.bio
+            result['website'] = user.website_url
+            result['location'] = user.location
+            result['twitter'] = user.twitter
+            result['image'] = user.profile_image_url
 
             return JsonResponse(result, status=200)
 
@@ -102,12 +102,12 @@ class MyprofileView(View):
         user = User.objects.get(id=request.user.id)
 
         try:
-            user.name = data.get('name')
-            user.bio = data.get('bio')
-            user.website = data.get('website')
+            user.name = data['name']
+            user.bio = data['introduction']
+            user.website_url = data.get('website')
             user.location = data.get('location')
             user.twitter = data.get('twitter')
-            user.image = data.get('images')
+            user.profile_image_url = data.get('images')
             user.save()
 
             return HttpResponse(status=200)
