@@ -4,34 +4,65 @@ from user.models import User
 from artwork.models import Artwork, ArtworkColor, ArtworkPrice
 
 
+class Orderer(models.Model):
+    USER = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    name = models.CharField(max_length=100)
+    address = models.CharField(max_length=500)
+    zipcode = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'ORDERER'
+
+
 class Cart(models.Model):
     USER = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     ARTWORK = models.ForeignKey(Artwork, on_delete=models.SET_NULL, null=True)
-    ARTWORK_COLOR = models.ForeignKey(ArtworkColor, on_delete=models.SET_NULL, null=True)
     ARTWORK_PRICE = models.ForeignKey(ArtworkPrice, on_delete=models.SET_NULL, null=True)
-    is_customed = models.BooleanField(null=True)
-    is_checkout = models.BooleanField(default=False, null=True)
-    custom_info = models.TextField(max_length=3000, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    is_custom = models.BooleanField(null=True)
+    custom_info = models.TextField(max_length=2000, null=True)
+    quantity = models.SmallIntegerField()
+    create_datetime = models.DateTimeField(auto_now_add=True)
+    update_datetime = models.DateTimeField(auto_now=True)
+    is_use = models.BooleanField()
 
     class Meta:
         db_table = 'CART'
 
 
 class Order(models.Model):
-    CART = models.ForeignKey('Cart', on_delete=models.SET_NULL, null=True)
     USER = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    ORDER_STATUS = models.ForeignKey('OrderStatus', on_delete=models.SET_NULL, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    ORDERER = models.ForeignKey(Orderer, on_delete=models.SET_NULL, null=True)
+    order_number = models.CharField(max_length=100)
+    delivery_price = models.DecimalField(max_digits=18, decimal_places=2, null=True)
+    sub_total_price = models.DecimalField(max_digits=18, decimal_places=2, null=True)
+    total_price = models.DecimalField(max_digits=18, decimal_places=2, null=True)
+    create_datetime = models.DateTimeField(auto_now_add=True)
+    update_datetime = models.DateTimeField(auto_now=True)
+    is_use = models.BooleanField()
 
     class Meta:
         db_table = 'ORDER'
 
 
-class OrderStatus(models.Model):
+class CheckoutStatus(models.Model):
     name = models.CharField(max_length=100)
 
     class Meta:
-        db_table = 'ORDER_STATUS'
+        db_table = 'CHECKOUT_STATUS'
+
+
+class CheckOut(models.Model):
+    CART = models.ForeignKey(Cart, on_delete=models.SET_NULL, null=True)
+    ORDER = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True)
+    CHECKOUT_STATUS = models.ForeignKey(CheckoutStatus, on_delete=models.SET_NULL, null=True)
+    custom_info = models.TextField(max_length=3000, null=True)
+    quantity = models.SmallIntegerField()
+    sell_price = models.DecimalField(max_digits=18, decimal_places=2, null=True)
+    create_datetime = models.DateTimeField(auto_now_add=True)
+    update_datetime = models.DateTimeField(auto_now=True)
+    is_use = models.BooleanField()
+
+    class Meta:
+        db_table = 'CHECKOUT'
