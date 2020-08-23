@@ -9,6 +9,7 @@ from my_settings import SMS_AUTH_ID, SMS_SERVICE_SECRET, SMS_FROM_NUMBER, SMS_UR
 
 from .models import Order, CheckoutStatus, Cart
 from user.models import User
+from artwork.models import ArtworkPrice
 
 
 def email(data, user):
@@ -54,10 +55,11 @@ class CartView(View):
         data = json.loads(request.body)
 
         try:
+            artwork_price = ArtworkPrice.objects.all()
             Cart.objects.create(
                 USER_id=request.user.id,
                 ARTWORK_id=data['ARTWORK_id'],
-                ARTWORK_PRICE_id=data['ARTWORK_PRICE_id'],
+                ARTWORK_PRICE_id=artwork_price.get(ARTWORK=data['ARTWORK_id']).id,
                 is_custom=data['is_custom'],
                 custom_info=data['custom_info'],
                 quantity=data['quantity'],
@@ -103,7 +105,8 @@ class CartView(View):
 
             for result in custom_cart:
                 dict_data = dict()
-                dict_data['id'] = result.id
+                dict_data['cart_id'] = result.id
+                dict_data['artwork_id'] = result.ARTWORK.id
                 dict_data['artwork_name'] = result.ARTWORK.name
                 dict_data['artwork_device_name'] = result.ARTWORK.DEVICE.name
                 dict_data['artwork_color_name'] = result.ARTWORK.ARTWORK_COLOR.name
@@ -118,7 +121,8 @@ class CartView(View):
 
             for result in regular_cart:
                 dict_data = dict()
-                dict_data['id'] = result.id
+                dict_data['cart_id'] = result.id
+                dict_data['artwork_id'] = result.ARTWORK.id
                 dict_data['artwork_name'] = result.ARTWORK.name
                 dict_data['artwork_device_name'] = result.ARTWORK.DEVICE.name
                 dict_data['artwork_color_name'] = result.ARTWORK.ARTWORK_COLOR.name
