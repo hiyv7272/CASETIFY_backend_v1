@@ -2,11 +2,10 @@ import json
 import requests
 
 from datetime import datetime
-from decimal import Decimal
 from django.views import View
 from django.http import JsonResponse, HttpResponse
 from django.core.mail.message import EmailMessage
-from django.db import transaction, DatabaseError
+from django.db import transaction
 from user.utils import login_decorator
 from my_settings import SMS_AUTH_ID, SMS_SERVICE_SECRET, SMS_FROM_NUMBER, SMS_URL
 
@@ -88,7 +87,7 @@ class CartView(View):
             'ARTWORK__ARTWORK_COLOR',
             'ARTWORK__ARTWORK_TYPE',
             'ARTWORK__ARTIST'
-        ).filter(USER=request.user.id, is_custom=True).order_by('id')
+        ).filter(USER=request.user.id, is_custom=True, is_use=True).order_by('id')
 
         regular_cart = Cart.objects.select_related(
             'USER',
@@ -100,7 +99,7 @@ class CartView(View):
             'ARTWORK__ARTWORK_COLOR',
             'ARTWORK__ARTWORK_TYPE',
             'ARTWORK__ARTIST'
-        ).filter(USER=request.user.id, is_custom=False).order_by('id')
+        ).filter(USER=request.user.id, is_custom=False, is_use=True).order_by('id')
 
         try:
             custom_cart_list = list()
@@ -211,9 +210,7 @@ class OrderView(View):
     def get(self, request):
 
         try:
-
             order_list = list()
-
 
             order = Order.objects.select_related(
                 'USER',
