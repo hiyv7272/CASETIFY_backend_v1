@@ -4,7 +4,7 @@
 
 
 -- INSERT INTO USER 비회원
-INSERT INTO CASETIFYv2.USER (id, name, email, password, mobile_number, create_datetime, update_datetime, is_use) VALUES (1, '비회원', 'test00@test.com', '12345678', '01000000000', NOW(), NOW(), True);
+INSERT INTO USER (id, name, email, password, mobile_number, create_datetime, update_datetime, is_use) VALUES (1, '비회원', 'test00@test.com', '12345678', '01000000000', NOW(), NOW(), True);
 
 
 --  INSERT INTO FEATURED table

@@ -1,13 +1,16 @@
 import json
 import requests
 
+from datetime import datetime
+from decimal import Decimal
 from django.views import View
 from django.http import JsonResponse, HttpResponse
 from django.core.mail.message import EmailMessage
+from django.db import transaction, DatabaseError
 from user.utils import login_decorator
 from my_settings import SMS_AUTH_ID, SMS_SERVICE_SECRET, SMS_FROM_NUMBER, SMS_URL
 
-from .models import Order, CheckoutStatus, Cart
+from .models import Order, Orderer, CheckoutStatus, CheckOut, Cart
 from user.models import User
 from artwork.models import ArtworkPrice
 
@@ -149,84 +152,118 @@ class CartView(View):
 class OrderView(View):
     @login_decorator
     def post(self, request):
-        data = json.loads(request.body)
-        user = User.objects.get(id=request.user.id)
+        with transaction.atomic():
 
-        try:
-            user.mobile_number = data['mobile_number']
-            user.first_name = data['first_name']
-            user.last_name = data['last_name']
-            user.address = data['address']
-            user.zipcode = data['zipcode']
-            user.save()
+            try:
+                delivery_price = float("5.99")
+                sub_total_price = float("00.00")
+                order_number = datetime.now().strftime('%Y%m%d%H%m%s')
+                user_id = request.user.id
 
-            for cart_id in data['id']:
-
-                Cart.objects.filter(id=cart_id).update(is_checkout=True)
-                Order(
-                    CART=Cart.objects.get(id=cart_id),
-                    USER=user,
-                    CHECKOUT_STATUS=CheckoutStatus.objects.get(id=3)
+                print(request.GET.get('first_name'))
+                Orderer(
+                    USER=User.objects.get(id=user_id),
+                    first_name=request.GET.get('first_name'),
+                    last_name=request.GET.get('last_name'),
+                    address=request.GET.get('address'),
+                    zipcode=request.GET.get('zipcode'),
+                    mobile_number=request.GET.get('mobile_number')
                 ).save()
 
-            # email(data, user)
-            # self.sms_service(data, user)
-            return HttpResponse(status=200)
+                for cart_id in request.GET.get('cart_id').split(','):
+                    cart = Cart.objects.get(id=cart_id)
+                    cart.is_use = False
+                    cart.save()
+                    sub_total_price += float(Cart.objects.select_related('ARTWORK_PRICE').get(id=cart_id).ARTWORK_PRICE.price)
 
-        except Order.DoesNotExist:
-            return JsonResponse({"message": "INVALID_VALUE"}, status=400)
-        except KeyError:
-            return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
+                if sub_total_price > 49.00:
+                    delivery_price = float("00.00")
+
+                total_price = sub_total_price + delivery_price
+                print(Orderer.objects.get(USER=request.user.id))
+                Order(
+                    USER=User.objects.get(id=user_id),
+                    ORDERER=Orderer.objects.get(USER=request.user.id),
+                    order_number=order_number,
+                    delivery_price=delivery_price,
+                    sub_total_price=sub_total_price,
+                    total_price=total_price,
+                    is_use=True
+                ).save()
+
+                for cart_id in request.GET.get('cart_id').split(','):
+                    CheckOut(
+                        USER=User.objects.get(id=user_id),
+                        CART=Cart.objects.get(id=cart_id),
+                        ORDER=Order.objects.get(order_number=order_number),
+                        CHECKOUT_STATUS=CheckoutStatus.objects.get(name='결제완료'),
+                        custom_info=Cart.objects.get(id=cart_id).custom_info,
+                        quantity=Cart.objects.get(id=cart_id).quantity,
+                        sell_price=Cart.objects.select_related('ARTWORK_PRICE').get(id=cart_id).ARTWORK_PRICE.price,
+                        is_use=True
+                    ).save()
+
+                return HttpResponse(status=200)
+            except KeyError:
+                return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
 
     @login_decorator
     def get(self, request):
-        user = User.objects.get(id=request.user.id)
-        order = Order.objects.select_related(
-            'CART',
-            'USER',
-            'ORDER_STATUS'
-        ).filter(USER=request.user.id, ORDER_STATUS=3).order_by('id')
-
-        cart = Cart.objects.select_related(
-            'USER',
-            'ARTWORK',
-            'ARTWORK_COLOR',
-            'ARTWORK_PRICE'
-        ).filter(USER=request.user.id, is_checkout=True)
 
         try:
-            orders = list()
-            user_data = dict()
 
-            user_data['email'] = user.email
-            user_data['mobile_number'] = user.mobile_number
-            user_data['first_name'] = user.first_name
-            user_data['last_name'] = user.last_name
-            user_data['address'] = user.address
-            user_data['zipcode'] = user.zipcode
+            order_list = list()
 
-            for order_row in order:
+
+            order = Order.objects.select_related(
+                'USER',
+                'ORDERER'
+            ).all().filter(USER=request.user.id)
+
+            for row in order:
                 dict_data = dict()
-                dict_data['cart_id'] = order_row.CART.id
-                dict_data['user'] = order_row.USER.name
-                dict_data['order_status'] = order_row.ORDER_STATUS.name
+                dict_data['order_id'] = row.id
+                dict_data['order_number'] = row.order_number
+                dict_data['delivery_price'] = row.delivery_price
+                dict_data['sub_total_price'] = row.sub_total_price
+                dict_data['total_price'] = row.total_price
+                dict_data['order_datetime'] = row.create_datetime
+                dict_data['orderer_name'] = row.ORDERER.last_name + row.ORDERER.first_name
+                dict_data['orderer_address'] = row.ORDERER.address
+                dict_data['orderer_zipcode'] = row.ORDERER.zipcode
 
-                for cart_row in cart:
-                    if cart_row.id == dict_data['cart_id']:
-                        dict_data['artwork'] = cart_row.ARTWORK.name
-                        dict_data['artwork_color'] = cart_row.ARTWORK_COLOR.name
-                        dict_data['artwork_price'] = cart_row.ARTWORK_PRICE.price
-                        dict_data['is_customed'] = cart_row.is_customed
-                        dict_data['custom_info'] = cart_row.custom_info
+                order_list.append(dict_data)
 
-                orders.append(dict_data)
-
-            return JsonResponse({
-                "user_data": user_data,
-                "orders": orders,
-            }, status=200)
+            return JsonResponse({"data": order_list}, status=200)
 
         except KeyError:
             return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
 
 
+class OrderDetailView(View):
+    @login_decorator
+    def get(self, request):
+        try:
+            order_id = request.GET.get('order_id')
+            checkout = CheckOut.objects.select_related(
+                'ORDER',
+                'CHECKOUT_STATUS'
+            ).filter(ORDER=order_id)
+
+            checkout_list = list()
+
+            for row in checkout:
+                dict_data = dict()
+                dict_data['checkout_id'] = row.id
+                dict_data['checkout_status'] = row.CHECKOUT_STATUS.name
+                dict_data['custom_info'] = row.custom_info
+                dict_data['quantity'] = row.quantity
+                dict_data['sell_price'] = row.sell_price
+                dict_data['checkout_datetime'] = row.create_datetime
+
+                checkout_list.append(dict_data)
+
+            return JsonResponse({"data": checkout_list}, status=200)
+
+        except KeyError:
+            return JsonResponse({'message': 'INVALID_KEYS'}, status=400)

@@ -1,14 +1,16 @@
 from django.db import models
 
 from user.models import User
-from artwork.models import Artwork, ArtworkColor, ArtworkPrice
+from artwork.models import Artwork, ArtworkPrice
 
 
 class Orderer(models.Model):
     USER = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
     address = models.CharField(max_length=500)
     zipcode = models.CharField(max_length=100)
+    mobile_number = models.CharField(max_length=11)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -54,6 +56,7 @@ class CheckoutStatus(models.Model):
 
 
 class CheckOut(models.Model):
+    USER = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     CART = models.ForeignKey(Cart, on_delete=models.SET_NULL, null=True)
     ORDER = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True)
     CHECKOUT_STATUS = models.ForeignKey(CheckoutStatus, on_delete=models.SET_NULL, null=True)
