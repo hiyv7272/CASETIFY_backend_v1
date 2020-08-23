@@ -84,13 +84,13 @@ class ArtworkPrice(models.Model):
         db_table = 'ARTWORK_PRICE'
 
 
-class ArtworkColorArtwork(models.Model):
+class ArtworkColorDeivce(models.Model):
     ARTWORK = models.ForeignKey(Artwork, on_delete=models.SET_NULL, null=True)
     ARTWORK_COLOR = models.ForeignKey(ArtworkColor, on_delete=models.SET_NULL, null=True)
     DEVICE = models.ForeignKey(Device, on_delete=models.SET_NULL, null=True)
 
     class Meta:
-        db_table = 'ARTWORK_COLOR_ARTWORK'
+        db_table = 'ARTWORK_COLOR_DEVICE'
 
 
 class ArtworkImage(models.Model):

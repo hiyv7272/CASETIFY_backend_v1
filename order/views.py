@@ -7,27 +7,27 @@ from django.core.mail.message import EmailMessage
 from user.utils import login_decorator
 from my_settings import SMS_AUTH_ID, SMS_SERVICE_SECRET, SMS_FROM_NUMBER, SMS_URL
 
-from .models import Order, OrderStatus, Cart
+from .models import Order, CheckoutStatus, Cart
 from user.models import User
 
 
 def email(data, user):
     for id in data['id']:
-        info = Order.objects.select_related('user', 'artwork').get(id=id)
+        info = Order.objects.select_related('USER', 'ARTWORK').get(id=id)
     if len(data['id']) > 1:
         subject = 'CASETIFY-PROJECT'
-        message = f"""{user.last_name}{user.first_name}님 {info.artwork.name}외 상품 결제완료되었습니다. \n감사합니다 :)"""
+        message = f"""{user.last_name}{user.first_name}님 {info.ARTWORK.name}외 상품 결제완료되었습니다. \n감사합니다 :)"""
         email = EmailMessage(subject=subject, body=message, to=[user.email])
     else:
         subject = 'CASETIFY-PROJECT'
-        message = f"""{user.last_name}{user.first_name}님 {info.artwork.name}상품 결제완료되었습니다. \n감사합니다 :)"""
+        message = f"""{user.last_name}{user.first_name}님 {info.ARTWORK.name}상품 결제완료되었습니다. \n감사합니다 :)"""
         email = EmailMessage(subject=subject, body=message, to=[user.email])
     email.send()
 
 
 def sms_service(data, user):
     for id in data['id']:
-        info = Order.objects.select_related('user', 'artwork').get(id=id)
+        info = Order.objects.select_related('USER', 'ARTWORK').get(id=id)
     mobile_number = info.user.mobile_number
 
     headers = {
@@ -56,11 +56,14 @@ class CartView(View):
         try:
             Cart.objects.create(
                 USER_id=request.user.id,
-                ARTWORK_id=data['artwork_id'],
-                ARTWORK_COLOR_id=data['artwork_color_id'],
-                ARTWORK_PRICE_id=data['artwork_price_id'],
-                is_customed=data['is_customed']
+                ARTWORK_id=data['ARTWORK_id'],
+                ARTWORK_PRICE_id=data['ARTWORK_PRICE_id'],
+                is_custom=data['is_custom'],
+                custom_info=data['custom_info'],
+                quantity=data['quantity'],
+                is_use=True
             )
+
             return HttpResponse(status=200)
 
         except Cart.DoesNotExist:
@@ -73,16 +76,26 @@ class CartView(View):
         custom_cart = Cart.objects.select_related(
             'USER',
             'ARTWORK',
-            'ARTWORK_COLOR',
             'ARTWORK_PRICE'
-        ).filter(USER=request.user.id, is_customed=True).order_by('id')
+        ).select_related(
+            'ARTWORK__FEATURED',
+            'ARTWORK__DEVICE',
+            'ARTWORK__ARTWORK_COLOR',
+            'ARTWORK__ARTWORK_TYPE',
+            'ARTWORK__ARTIST'
+        ).filter(USER=request.user.id, is_custom=True).order_by('id')
 
         regular_cart = Cart.objects.select_related(
             'USER',
             'ARTWORK',
-            'ARTWORK_COLOR',
             'ARTWORK_PRICE'
-        ).filter(USER=request.user.id, is_customed=False).order_by('id')
+        ).select_related(
+            'ARTWORK__FEATURED',
+            'ARTWORK__DEVICE',
+            'ARTWORK__ARTWORK_COLOR',
+            'ARTWORK__ARTWORK_TYPE',
+            'ARTWORK__ARTIST'
+        ).filter(USER=request.user.id, is_custom=False).order_by('id')
 
         try:
             custom_cart_list = list()
@@ -91,26 +104,30 @@ class CartView(View):
             for result in custom_cart:
                 dict_data = dict()
                 dict_data['id'] = result.id
-                dict_data['user'] = result.USER.name
-                dict_data['artwork'] = result.ARTWORK.name
-                dict_data['artwork_color'] = result.ARTWORK_COLOR.name
+                dict_data['artwork_name'] = result.ARTWORK.name
+                dict_data['artwork_device_name'] = result.ARTWORK.DEVICE.name
+                dict_data['artwork_color_name'] = result.ARTWORK.ARTWORK_COLOR.name
+                dict_data['artwork_type'] = result.ARTWORK.ARTWORK_TYPE.name
                 dict_data['artwork_price'] = result.ARTWORK_PRICE.price
-                dict_data['is_customed'] = result.is_customed
-                dict_data['is_checkout'] = result.is_checkout
+                dict_data['artwork_artist_name'] = result.ARTWORK.ARTIST.name
+                dict_data['is_custom'] = result.is_custom
                 dict_data['custom_info'] = result.custom_info
+                dict_data['quantity'] = result.quantity
 
                 custom_cart_list.append(dict_data)
 
             for result in regular_cart:
                 dict_data = dict()
                 dict_data['id'] = result.id
-                dict_data['user'] = result.USER.name
-                dict_data['artwork'] = result.ARTWORK.name
-                dict_data['artwork_color'] = result.ARTWORK_COLOR.name
+                dict_data['artwork_name'] = result.ARTWORK.name
+                dict_data['artwork_device_name'] = result.ARTWORK.DEVICE.name
+                dict_data['artwork_color_name'] = result.ARTWORK.ARTWORK_COLOR.name
+                dict_data['artwork_type'] = result.ARTWORK.ARTWORK_TYPE.name
                 dict_data['artwork_price'] = result.ARTWORK_PRICE.price
-                dict_data['is_customed'] = result.is_customed
-                dict_data['is_checkout'] = result.is_checkout
+                dict_data['artwork_artist_name'] = result.ARTWORK.ARTIST.name
+                dict_data['is_custom'] = result.is_custom
                 dict_data['custom_info'] = result.custom_info
+                dict_data['quantity'] = result.quantity
 
                 regular_cart_list.append(dict_data)
 
@@ -145,7 +162,7 @@ class OrderView(View):
                 Order(
                     CART=Cart.objects.get(id=cart_id),
                     USER=user,
-                    ORDER_STATUS=OrderStatus.objects.get(id=3)
+                    CHECKOUT_STATUS=CheckoutStatus.objects.get(id=3)
                 ).save()
 
             # email(data, user)
