@@ -4,7 +4,7 @@ from .views import (
     SignInView, 
     MyprofileView,
     MyShippingInfoView,
-    KakaologinView
+    KakaologinView,
 )
 
 urlpatterns = [
