@@ -1,54 +1,14 @@
 import json
-import requests
 
 from datetime import datetime
 from django.views import View
 from django.http import JsonResponse, HttpResponse
-from django.core.mail.message import EmailMessage
 from django.db import transaction
 from user.utils import login_decorator
-from my_settings import SMS_AUTH_ID, SMS_SERVICE_SECRET, SMS_FROM_NUMBER, SMS_URL
 
 from .models import Order, Orderer, CheckoutStatus, CheckOut, Cart
 from user.models import User
 from artwork.models import ArtworkPrice
-
-
-def email(data, user):
-    for id in data['id']:
-        info = Order.objects.select_related('USER', 'ARTWORK').get(id=id)
-    if len(data['id']) > 1:
-        subject = 'CASETIFY-PROJECT'
-        message = f"""{user.last_name}{user.first_name}님 {info.ARTWORK.name}외 상품 결제완료되었습니다. \n감사합니다 :)"""
-        email = EmailMessage(subject=subject, body=message, to=[user.email])
-    else:
-        subject = 'CASETIFY-PROJECT'
-        message = f"""{user.last_name}{user.first_name}님 {info.ARTWORK.name}상품 결제완료되었습니다. \n감사합니다 :)"""
-        email = EmailMessage(subject=subject, body=message, to=[user.email])
-    email.send()
-
-
-def sms_service(data, user):
-    for id in data['id']:
-        info = Order.objects.select_related('USER', 'ARTWORK').get(id=id)
-    mobile_number = info.user.mobile_number
-
-    headers = {
-        'Content-Type': 'application/json; charset=utf-8',
-        'x-ncp-auth-key': f'{SMS_AUTH_ID}',
-        'x-ncp-service-secret': f'{SMS_SERVICE_SECRET}',
-    }
-
-    data = {
-        'type': 'SMS',
-        'contentType': 'COMM',
-        'countryCode': '82',
-        'from': f"""{SMS_FROM_NUMBER}""",
-        'to': [f"""{mobile_number}"""],
-        'subject': 'CASETIFY-PROJECT',
-        'content': f"""{user.last_name}{user.first_name}님! {info.artwork.name}상품 결제가 완료되었습니다. \n감사합니다 :)"""
-    }
-    requests.post(SMS_URL, headers=headers, json=data)
 
 
 class CartView(View):

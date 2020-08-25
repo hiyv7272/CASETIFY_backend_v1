@@ -6,22 +6,9 @@ import requests
 from django.views import View
 from django.http import JsonResponse, HttpResponse
 from casetify_backend.settings import SECRET_KEY
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
 
 from .models import User
-from .utils import login_decorator
-
-
-def validate_input(data):
-
-    if len(data['password']) < 8:
-        return JsonResponse({'message': 'INVALID_PASSWORD'}, status=400)
-
-    if User.objects.filter(email=data['email']).exists():
-        return JsonResponse({'message': 'DUPLICATE_EMAIL'}, status=401)
-
-    return None
+from .utils import login_decorator, validate_password, validate_email
 
 
 class SignUpView(View):
@@ -29,11 +16,13 @@ class SignUpView(View):
         data = json.loads(request.body)
 
         try:
-            validate_email(data['email'])
-            validation = validate_input(data)
+            validated_password = validate_password(data)
+            validated_email = validate_email(data)
+            if validated_password:
+                return validated_password
 
-            if validation:
-                return validation
+            if validated_email:
+                return validated_email
 
             hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt()).decode()
             User(
@@ -45,8 +34,6 @@ class SignUpView(View):
 
             return HttpResponse(status=200)
 
-        except ValidationError:
-            return JsonResponse({'message': 'INVALID_EMAIL_SYNTAX'}, status=400)
         except TypeError:
             return JsonResponse({'message': 'INVALID_TYPE'}, status=400)
         except KeyError:
@@ -71,7 +58,7 @@ class SignInView(View):
             return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
 
 
-class MyprofileView(View):
+class MyProfileView(View):
     @login_decorator
     def get(self, request):
         user = User.objects.get(id=request.user.id)
