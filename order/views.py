@@ -8,7 +8,7 @@ from user.utils import login_decorator
 
 from .models import Order, Orderer, CheckoutStatus, CheckOut, Cart
 from user.models import User
-from artwork.models import ArtworkPrice
+from artwork.models import Artwork, ArtworkPrice
 
 
 class CartView(View):
@@ -17,11 +17,12 @@ class CartView(View):
         data = json.loads(request.body)
 
         try:
+            print(data)
             artwork_price = ArtworkPrice.objects.all()
             Cart.objects.create(
-                USER_id=request.user.id,
-                ARTWORK_id=data['ARTWORK_id'],
-                ARTWORK_PRICE_id=artwork_price.get(ARTWORK=data['ARTWORK_id']).id,
+                USER=User.objects.get(id=request.user.id),
+                ARTWORK=Artwork.objects.get(id=data['artwork_id']),
+                ARTWORK_PRICE=artwork_price.get(ARTWORK=data['artwork_id']),
                 is_custom=data['is_custom'],
                 custom_info=data['custom_info'],
                 quantity=data['quantity'],
@@ -108,7 +109,7 @@ class CartView(View):
             return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
 
 
-class OrderView(View):
+class CheckoutView(View):
     @login_decorator
     def post(self, request):
         with transaction.atomic():
@@ -119,15 +120,13 @@ class OrderView(View):
                 order_number = datetime.now().strftime('%Y%m%d%H%m%s')
                 user_id = request.user.id
 
-                print(request.GET.get('first_name'))
-                Orderer(
-                    USER=User.objects.get(id=user_id),
-                    first_name=request.GET.get('first_name'),
-                    last_name=request.GET.get('last_name'),
-                    address=request.GET.get('address'),
-                    zipcode=request.GET.get('zipcode'),
-                    mobile_number=request.GET.get('mobile_number')
-                ).save()
+                orderer = Orderer.objects.get(USER=user_id)
+                orderer.USER = User.objects.get(id=user_id)
+                orderer.first_name = request.GET.get('first_name')
+                orderer.last_name = request.GET.get('last_name')
+                orderer.address = request.GET.get('address')
+                orderer.zipcode = request.GET.get('zipcode')
+                orderer.mobile_number = request.GET.get('mobile_number')
 
                 for cart_id in request.GET.get('cart_id').split(','):
                     cart = Cart.objects.get(id=cart_id)
@@ -139,7 +138,7 @@ class OrderView(View):
                     delivery_price = float("00.00")
 
                 total_price = sub_total_price + delivery_price
-                print(Orderer.objects.get(USER=request.user.id))
+
                 Order(
                     USER=User.objects.get(id=user_id),
                     ORDERER=Orderer.objects.get(USER=request.user.id),
@@ -197,7 +196,7 @@ class OrderView(View):
             return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
 
 
-class OrderDetailView(View):
+class CheckoutDetailView(View):
     @login_decorator
     def get(self, request):
         try:
