@@ -5,39 +5,47 @@ import requests
 
 from django.views import View
 from django.http import JsonResponse, HttpResponse
+from django.db import transaction
 from casetify_backend.settings import SECRET_KEY
 
 from .models import User
+from order.models import Orderer
 from .utils import login_decorator, validate_password, validate_email
 
 
 class SignUpView(View):
     def post(self, request):
-        data = json.loads(request.body)
+        with transaction.atomic():
 
-        try:
-            validated_password = validate_password(data)
-            validated_email = validate_email(data)
-            if validated_password:
-                return validated_password
+            try:
+                data = json.loads(request.body)
 
-            if validated_email:
-                return validated_email
+                validated_password = validate_password(data)
+                if validated_password:
+                    return validated_password
 
-            hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt()).decode()
-            User(
-                email=data['email'],
-                password=hashed_password,
-                mobile_number=data['mobile_number'],
-                is_use=True
-            ).save()
+                validated_email = validate_email(data)
+                if validated_email:
+                    return validated_email
 
-            return HttpResponse(status=200)
+                hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt()).decode()
+                User(
+                    email=data['email'],
+                    password=hashed_password,
+                    mobile_number=data['mobile_number'],
+                    is_use=True
+                ).save()
 
-        except TypeError:
-            return JsonResponse({'message': 'INVALID_TYPE'}, status=400)
-        except KeyError:
-            return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
+                Orderer(
+                    USER=User.objects.get(email=data['email'])
+                ).save()
+
+                return HttpResponse(status=200)
+
+            except TypeError:
+                return JsonResponse({'message': 'INVALID_TYPE'}, status=400)
+            except KeyError:
+                return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
 
 
 class SignInView(View):
