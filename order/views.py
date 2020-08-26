@@ -14,11 +14,11 @@ from artwork.models import Artwork, ArtworkPrice
 class CartView(View):
     @login_decorator
     def post(self, request):
-        data = json.loads(request.body)
-
         try:
-            print(data)
+            data = json.loads(request.body)
+
             artwork_price = ArtworkPrice.objects.all()
+
             Cart.objects.create(
                 USER=User.objects.get(id=request.user.id),
                 ARTWORK=Artwork.objects.get(id=data['artwork_id']),
@@ -38,70 +38,70 @@ class CartView(View):
 
     @login_decorator
     def get(self, request):
-        custom_cart = Cart.objects.select_related(
-            'USER',
-            'ARTWORK',
-            'ARTWORK_PRICE'
-        ).select_related(
-            'ARTWORK__FEATURED',
-            'ARTWORK__DEVICE',
-            'ARTWORK__ARTWORK_COLOR',
-            'ARTWORK__ARTWORK_TYPE',
-            'ARTWORK__ARTIST'
-        ).filter(USER=request.user.id, is_custom=True, is_use=True).order_by('id')
-
-        regular_cart = Cart.objects.select_related(
-            'USER',
-            'ARTWORK',
-            'ARTWORK_PRICE'
-        ).select_related(
-            'ARTWORK__FEATURED',
-            'ARTWORK__DEVICE',
-            'ARTWORK__ARTWORK_COLOR',
-            'ARTWORK__ARTWORK_TYPE',
-            'ARTWORK__ARTIST'
-        ).filter(USER=request.user.id, is_custom=False, is_use=True).order_by('id')
-
         try:
-            custom_cart_list = list()
-            regular_cart_list = list()
+            custom_cart = Cart.objects.select_related(
+                'USER',
+                'ARTWORK',
+                'ARTWORK_PRICE'
+            ).select_related(
+                'ARTWORK__FEATURED',
+                'ARTWORK__DEVICE',
+                'ARTWORK__ARTWORK_COLOR',
+                'ARTWORK__ARTWORK_TYPE',
+                'ARTWORK__ARTIST'
+            ).filter(USER=request.user.id, is_custom=True, is_use=True).order_by('id')
 
-            for result in custom_cart:
+            regular_cart = Cart.objects.select_related(
+                'USER',
+                'ARTWORK',
+                'ARTWORK_PRICE'
+            ).select_related(
+                'ARTWORK__FEATURED',
+                'ARTWORK__DEVICE',
+                'ARTWORK__ARTWORK_COLOR',
+                'ARTWORK__ARTWORK_TYPE',
+                'ARTWORK__ARTIST'
+            ).filter(USER=request.user.id, is_custom=False, is_use=True).order_by('id')
+
+            custom_cart_list = list()
+            for row in custom_cart:
                 dict_data = dict()
-                dict_data['cart_id'] = result.id
-                dict_data['artwork_id'] = result.ARTWORK.id
-                dict_data['artwork_name'] = result.ARTWORK.name
-                dict_data['artwork_device_name'] = result.ARTWORK.DEVICE.name
-                dict_data['artwork_color_name'] = result.ARTWORK.ARTWORK_COLOR.name
-                dict_data['artwork_type'] = result.ARTWORK.ARTWORK_TYPE.name
-                dict_data['artwork_price'] = result.ARTWORK_PRICE.price
-                dict_data['artwork_artist_name'] = result.ARTWORK.ARTIST.name
-                dict_data['is_custom'] = result.is_custom
-                dict_data['custom_info'] = result.custom_info
-                dict_data['quantity'] = result.quantity
+                dict_data['cart_id'] = row.id
+                dict_data['artwork_id'] = row.ARTWORK.id
+                dict_data['artwork_name'] = row.ARTWORK.name
+                dict_data['artwork_device_name'] = row.ARTWORK.DEVICE.name
+                dict_data['artwork_color_name'] = row.ARTWORK.ARTWORK_COLOR.name
+                dict_data['artwork_type'] = row.ARTWORK.ARTWORK_TYPE.name
+                dict_data['artwork_price'] = row.ARTWORK_PRICE.price
+                dict_data['artwork_artist_name'] = row.ARTWORK.ARTIST.name
+                dict_data['is_custom'] = row.is_custom
+                dict_data['custom_info'] = row.custom_info
+                dict_data['quantity'] = row.quantity
 
                 custom_cart_list.append(dict_data)
 
-            for result in regular_cart:
+            regular_cart_list = list()
+            for row in regular_cart:
                 dict_data = dict()
-                dict_data['cart_id'] = result.id
-                dict_data['artwork_id'] = result.ARTWORK.id
-                dict_data['artwork_name'] = result.ARTWORK.name
-                dict_data['artwork_device_name'] = result.ARTWORK.DEVICE.name
-                dict_data['artwork_color_name'] = result.ARTWORK.ARTWORK_COLOR.name
-                dict_data['artwork_type'] = result.ARTWORK.ARTWORK_TYPE.name
-                dict_data['artwork_price'] = result.ARTWORK_PRICE.price
-                dict_data['artwork_artist_name'] = result.ARTWORK.ARTIST.name
-                dict_data['is_custom'] = result.is_custom
-                dict_data['custom_info'] = result.custom_info
-                dict_data['quantity'] = result.quantity
+                dict_data['cart_id'] = row.id
+                dict_data['artwork_id'] = row.ARTWORK.id
+                dict_data['artwork_name'] = row.ARTWORK.name
+                dict_data['artwork_device_name'] = row.ARTWORK.DEVICE.name
+                dict_data['artwork_color_name'] = row.ARTWORK.ARTWORK_COLOR.name
+                dict_data['artwork_type'] = row.ARTWORK.ARTWORK_TYPE.name
+                dict_data['artwork_price'] = row.ARTWORK_PRICE.price
+                dict_data['artwork_artist_name'] = row.ARTWORK.ARTIST.name
+                dict_data['is_custom'] = row.is_custom
+                dict_data['custom_info'] = row.custom_info
+                dict_data['quantity'] = row.quantity
 
                 regular_cart_list.append(dict_data)
 
-            return JsonResponse({
-                "custom_orders": custom_cart_list,
-                "regular_orders": regular_cart_list
-            }, status=200)
+            return_data = dict()
+            return_data['custom_order'] = custom_cart_list
+            return_data['regular_order'] = regular_cart_list
+
+            return JsonResponse({'data': return_data}, status=200)
 
         except Cart.DoesNotExist:
             return JsonResponse({"message": "INVALID_VALUE"}, status=400)
@@ -113,7 +113,6 @@ class CheckoutView(View):
     @login_decorator
     def post(self, request):
         with transaction.atomic():
-
             try:
                 delivery_price = float("5.99")
                 sub_total_price = float("00.00")
@@ -163,20 +162,19 @@ class CheckoutView(View):
                     ).save()
 
                 return HttpResponse(status=200)
+
             except KeyError:
                 return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
 
     @login_decorator
     def get(self, request):
-
         try:
-            order_list = list()
-
             order = Order.objects.select_related(
                 'USER',
                 'ORDERER'
             ).all().filter(USER=request.user.id)
 
+            order_list = list()
             for row in order:
                 dict_data = dict()
                 dict_data['order_id'] = row.id
@@ -191,7 +189,7 @@ class CheckoutView(View):
 
                 order_list.append(dict_data)
 
-            return JsonResponse({"data": order_list}, status=200)
+            return JsonResponse({'data': order_list}, status=200)
 
         except KeyError:
             return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
@@ -208,7 +206,6 @@ class CheckoutDetailView(View):
             ).filter(ORDER=order_id)
 
             checkout_list = list()
-
             for row in checkout:
                 dict_data = dict()
                 dict_data['checkout_id'] = row.id
@@ -220,7 +217,7 @@ class CheckoutDetailView(View):
 
                 checkout_list.append(dict_data)
 
-            return JsonResponse({"data": checkout_list}, status=200)
+            return JsonResponse({'data': checkout_list}, status=200)
 
         except KeyError:
             return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
