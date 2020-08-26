@@ -31,25 +31,27 @@ def login_decorator(func):
     return wrapper
 
 
-def validate_password(data):
-    return_data = None
+class ValidateData:
+    def __init__(self, data):
+        self.data = data
 
-    if len(data['password']) < 8:
-        return JsonResponse({'message': 'INVALID_PASSWORD'}, status=400)
+    def password(self):
+        print(self)
+        if len(self) < 8:
+            return JsonResponse({'message': 'INVALID_PASSWORD'}, status=400)
 
-    return return_data
+        return None
 
+    def email(self):
+        print(self)
 
-def validate_email(data):
-    return_data = None
+        if validators.validate_email(self):
+            return JsonResponse({'message': 'INVALID_EMAIL'}, status=400)
 
-    if validators.validate_email(data['email']):
-        return JsonResponse({'message': 'INVALID_EMAIL'}, status=400)
+        if User.objects.filter(email=self).exists():
+            return JsonResponse({'message': 'DUPLICATE_EMAIL'}, status=401)
 
-    if User.objects.filter(email=data['email']).exists():
-        return JsonResponse({'message': 'DUPLICATE_EMAIL'}, status=401)
-
-    return return_data
+        return None
 
 
 def email(data, user):

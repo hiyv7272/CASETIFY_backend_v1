@@ -127,6 +127,7 @@ class CheckoutView(View):
                 orderer.address = request.GET.get('address')
                 orderer.zipcode = request.GET.get('zipcode')
                 orderer.mobile_number = request.GET.get('mobile_number')
+                orderer.save()
 
                 for cart_id in request.GET.get('cart_id').split(','):
                     cart = Cart.objects.get(id=cart_id)

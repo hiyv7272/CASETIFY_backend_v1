@@ -7,7 +7,8 @@ from .models import (
     Artwork,
     ArtworkImage,
     ArtworkPrice,
-    ArtworkReview
+    ArtworkReview,
+    ArtworkType
 )
 
 
@@ -19,7 +20,7 @@ class ArtworkListView(View):
             'ARTWORK_COLOR',
             'ARTWORK_TYPE',
             'ARTIST'
-        ).all().filter(ARTWORK_TYPE=1)
+        ).all().filter(ARTWORK_TYPE=ArtworkType.objects.get(name='Impact'))
         artwork_image = ArtworkImage.objects.all()
         artwork_price = ArtworkPrice.objects.all()
         artist = Artist.objects.all()

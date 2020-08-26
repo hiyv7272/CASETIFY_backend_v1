@@ -10,7 +10,7 @@ from casetify_backend.settings import SECRET_KEY
 
 from .models import User
 from order.models import Orderer
-from .utils import login_decorator, validate_password, validate_email
+from .utils import login_decorator, ValidateData
 
 
 class SignUpView(View):
@@ -20,11 +20,11 @@ class SignUpView(View):
             try:
                 data = json.loads(request.body)
 
-                validated_password = validate_password(data)
+                validated_password = ValidateData.password(data['password'])
                 if validated_password:
                     return validated_password
 
-                validated_email = validate_email(data)
+                validated_email = ValidateData.email(data['email'])
                 if validated_email:
                     return validated_email
 
