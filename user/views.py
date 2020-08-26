@@ -20,11 +20,12 @@ class SignUpView(View):
             try:
                 data = json.loads(request.body)
 
-                validated_password = ValidateData.password(data['password'])
+                validate_data = ValidateData(data)
+                validated_password = validate_data.password()
                 if validated_password:
                     return validated_password
 
-                validated_email = ValidateData.email(data['email'])
+                validated_email = validate_data.email()
                 if validated_email:
                     return validated_email
 
