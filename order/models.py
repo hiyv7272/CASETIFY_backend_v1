@@ -1,7 +1,7 @@
 from django.db import models
 
 from user.models import User
-from artwork.models import Artwork, ArtworkPrice
+from artwork.models import Phonecase, PhonecasePrice
 
 
 class Orderer(models.Model):
@@ -20,8 +20,8 @@ class Orderer(models.Model):
 
 class Cart(models.Model):
     USER = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    ARTWORK = models.ForeignKey(Artwork, on_delete=models.SET_NULL, null=True)
-    ARTWORK_PRICE = models.ForeignKey(ArtworkPrice, on_delete=models.SET_NULL, null=True)
+    PHONECASE = models.ForeignKey(Phonecase, on_delete=models.SET_NULL, null=True)
+    PHONECASE_PRICE = models.ForeignKey(PhonecasePrice, on_delete=models.SET_NULL, null=True)
     is_custom = models.BooleanField(null=True)
     custom_info = models.TextField(max_length=2000, null=True)
     quantity = models.SmallIntegerField()

@@ -8,7 +8,7 @@ from user.utils import login_decorator
 
 from .models import Order, Orderer, CheckoutStatus, CheckOut, Cart
 from user.models import User
-from artwork.models import Artwork, ArtworkPrice
+from artwork.models import Phonecase, PhonecasePrice
 
 
 class CartView(View):
@@ -17,12 +17,12 @@ class CartView(View):
         try:
             data = json.loads(request.body)
 
-            artwork_price = ArtworkPrice.objects.all()
+            phonecase_price = PhonecasePrice.objects.all()
 
             Cart.objects.create(
                 USER=User.objects.get(id=request.user.id),
-                ARTWORK=Artwork.objects.get(id=data['artwork_id']),
-                ARTWORK_PRICE=artwork_price.get(ARTWORK=data['artwork_id']),
+                PHONECASE=Phonecase.objects.get(id=data['phonecase_id']),
+                PHONECASE_PRICE=phonecase_price.get(PHONECASE=data['phonecase_id']),
                 is_custom=data['is_custom'],
                 custom_info=data['custom_info'],
                 quantity=data['quantity'],
@@ -32,48 +32,48 @@ class CartView(View):
             return HttpResponse(status=200)
 
         except Cart.DoesNotExist:
-            return JsonResponse({"message": "INVALID_USER"}, status=400)
+            return JsonResponse({'message': "INVALID_VALUE"}, status=400)
         except KeyError:
-            return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
+            return JsonResponse({'message': "INVALID_KEYS"}, status=400)
 
     @login_decorator
     def get(self, request):
         try:
             custom_cart = Cart.objects.select_related(
                 'USER',
-                'ARTWORK',
-                'ARTWORK_PRICE'
+                'PHONECASE',
+                'PHONECASE_PRICE'
             ).select_related(
-                'ARTWORK__FEATURED',
-                'ARTWORK__DEVICE',
-                'ARTWORK__ARTWORK_COLOR',
-                'ARTWORK__ARTWORK_TYPE',
-                'ARTWORK__ARTIST'
+                'PHONECASE__FEATURED',
+                'PHONECASE__DEVICE_MODEL',
+                'PHONECASE__PHONECASE_COLOR',
+                'PHONECASE__PHONECASE_TYPE',
+                'PHONECASE__ARTWORK'
             ).filter(USER=request.user.id, is_custom=True, is_use=True).order_by('id')
 
             regular_cart = Cart.objects.select_related(
                 'USER',
-                'ARTWORK',
-                'ARTWORK_PRICE'
+                'PHONECASE',
+                'PHONECASE_PRICE'
             ).select_related(
-                'ARTWORK__FEATURED',
-                'ARTWORK__DEVICE',
-                'ARTWORK__ARTWORK_COLOR',
-                'ARTWORK__ARTWORK_TYPE',
-                'ARTWORK__ARTIST'
+                'PHONECASE__FEATURED',
+                'PHONECASE__DEVICE_MODEL',
+                'PHONECASE__PHONECASE_COLOR',
+                'PHONECASE__PHONECASE_TYPE',
+                'PHONECASE__ARTWORK'
             ).filter(USER=request.user.id, is_custom=False, is_use=True).order_by('id')
 
             custom_cart_list = list()
             for row in custom_cart:
                 dict_data = dict()
                 dict_data['cart_id'] = row.id
-                dict_data['artwork_id'] = row.ARTWORK.id
-                dict_data['artwork_name'] = row.ARTWORK.name
-                dict_data['artwork_device_name'] = row.ARTWORK.DEVICE.name
-                dict_data['artwork_color_name'] = row.ARTWORK.ARTWORK_COLOR.name
-                dict_data['artwork_type'] = row.ARTWORK.ARTWORK_TYPE.name
-                dict_data['artwork_price'] = row.ARTWORK_PRICE.price
-                dict_data['artwork_artist_name'] = row.ARTWORK.ARTIST.name
+                dict_data['phonecase_id'] = row.PHONECASE.id
+                dict_data['phonecase_name'] = row.PHONECASE.name
+                dict_data['phonecase_device_name'] = row.PHONECASE.DEVICE_MODEL.name
+                dict_data['phonecase_color_name'] = row.PHONECASE.PHONECASE_COLOR.name
+                dict_data['phonecase_type'] = row.PHONECASE.PHONECASE_TYPE.name
+                dict_data['phonecase_price'] = row.PHONECASE_PRICE.price
+                dict_data['phonecase_artwork_name'] = row.PHONECASE.ARTWORK.name
                 dict_data['is_custom'] = row.is_custom
                 dict_data['custom_info'] = row.custom_info
                 dict_data['quantity'] = row.quantity
@@ -84,13 +84,13 @@ class CartView(View):
             for row in regular_cart:
                 dict_data = dict()
                 dict_data['cart_id'] = row.id
-                dict_data['artwork_id'] = row.ARTWORK.id
-                dict_data['artwork_name'] = row.ARTWORK.name
-                dict_data['artwork_device_name'] = row.ARTWORK.DEVICE.name
-                dict_data['artwork_color_name'] = row.ARTWORK.ARTWORK_COLOR.name
-                dict_data['artwork_type'] = row.ARTWORK.ARTWORK_TYPE.name
-                dict_data['artwork_price'] = row.ARTWORK_PRICE.price
-                dict_data['artwork_artist_name'] = row.ARTWORK.ARTIST.name
+                dict_data['phonecase_id'] = row.PHONECASE.id
+                dict_data['phonecase_name'] = row.PHONECASE.name
+                dict_data['phonecase_device_name'] = row.PHONECASE.DEVICE_MODEL.name
+                dict_data['phonecase_color_name'] = row.PHONECASE.PHONECASE_COLOR.name
+                dict_data['phonecase_type'] = row.PHONECASE.PHONECASE_TYPE.name
+                dict_data['phonecase_price'] = row.PHONECASE_PRICE.price
+                dict_data['phonecase_artwork_name'] = row.PHONECASE.ARTWORK.name
                 dict_data['is_custom'] = row.is_custom
                 dict_data['custom_info'] = row.custom_info
                 dict_data['quantity'] = row.quantity
@@ -130,9 +130,10 @@ class CheckoutView(View):
 
                 for cart_id in request.GET.get('cart_id').split(','):
                     cart = Cart.objects.get(id=cart_id)
-                    cart.is_use = False
-                    cart.save()
-                    sub_total_price += float(Cart.objects.select_related('ARTWORK_PRICE').get(id=cart_id).ARTWORK_PRICE.price)
+                    if cart:
+                        cart.is_use = False
+                        cart.save()
+                        sub_total_price += float(Cart.objects.select_related('PHONECASE_PRICE').get(id=cart_id).PHONECASE_PRICE.price)
 
                 if sub_total_price > 49.00:
                     delivery_price = float("00.00")
@@ -157,14 +158,20 @@ class CheckoutView(View):
                         CHECKOUT_STATUS=CheckoutStatus.objects.get(name='결제완료'),
                         custom_info=Cart.objects.get(id=cart_id).custom_info,
                         quantity=Cart.objects.get(id=cart_id).quantity,
-                        sell_price=Cart.objects.select_related('ARTWORK_PRICE').get(id=cart_id).ARTWORK_PRICE.price,
+                        sell_price=Cart.objects.select_related('PHONECASE_PRICE').get(id=cart_id).PHONECASE_PRICE.price,
                         is_use=True
                     ).save()
 
                 return HttpResponse(status=200)
 
+            except Orderer.DoesNotExist:
+                return JsonResponse({'message': "INVALID_VALUE"}, status=400)
+            except User.DoesNotExist:
+                return JsonResponse({'message': "INVALID_VALUE"}, status=400)
+            except Cart.DoesNotExist:
+                return JsonResponse({'message': "INVALID_VALUE"}, status=400)
             except KeyError:
-                return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
+                return JsonResponse({'message': "INVALID_KEYS"}, status=400)
 
     @login_decorator
     def get(self, request):
@@ -191,6 +198,8 @@ class CheckoutView(View):
 
             return JsonResponse({'data': order_list}, status=200)
 
+        except Order.DoesNotExist:
+            return JsonResponse({'message': "INVALID_VALUE"}, status=400)
         except KeyError:
             return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
 
@@ -219,5 +228,7 @@ class CheckoutDetailView(View):
 
             return JsonResponse({'data': checkout_list}, status=200)
 
+        except CheckOut.DoesNotExist:
+            return JsonResponse({'message': "INVALID_VALUE"}, status=400)
         except KeyError:
             return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
