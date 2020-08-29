@@ -88,11 +88,12 @@ class ArtworkDetailView(View):
 
             # device_list
             device_list = list()
-            for row in phonecase.values('FEATURED__id', 'DEVICE_MODEL__id', 'DEVICE_MODEL__name').annotate(Count('DEVICE_MODEL')):
+            for row in phonecase.filter(ARTWORK=artwork_id).values('FEATURED__id', 'DEVICE_MODEL__id', 'DEVICE_MODEL__name').distinct():
                 dict_data = dict()
                 dict_data['featured_id'] = row['FEATURED__id']
                 dict_data['device_model_id'] = row['DEVICE_MODEL__id']
                 dict_data['device_model_name'] = row['DEVICE_MODEL__name']
+
                 device_list.append(dict_data)
 
             # PHONECASE_list
